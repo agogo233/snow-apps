@@ -90,7 +90,7 @@ struct ScreenshotRecognitionSessionActions {
     // rect it covers and is invalid when the filtered region is empty.
     std::function<void(std::shared_ptr<ScreenshotOcrPresentation>, QImage, QRectF)>
         applyOcrBackgroundImage;
-    std::function<void(int, const QString&)> updateOcrText;
+    std::function<void(int, const QString&, bool streaming)> updateOcrText;
     // Workflow activity is independent of the host's provider/tool availability.
     std::function<void(bool active, bool busy, SnowShotImageConversionFormat format)>
         setConversionState;
@@ -103,6 +103,8 @@ struct ScreenshotRecognitionSessionActions {
     std::function<bool(const QUrl&)> openSpreadsheetUrl{};
     std::function<void(const QVector<SnowShotChatModel>&, const QString&, bool)>
         setTextTranslationServices{};
+    // Shared hosts reject UI publication from cached or retired controllers.
+    std::function<bool()> isCurrentSession{};
 };
 
 class ScreenshotRecognitionSessionController final : public QObject {
@@ -132,6 +134,8 @@ class ScreenshotRecognitionSessionController final : public QObject {
                       ScreenshotQrRecognitionPort* qrRecognition,
                       SnowShotApiClient* tableRecognition);
     void seedRecognitionResults(ScreenshotRecognitionResults results);
+    // A lightweight view of the current target's original OCR, without serializing other modes.
+    [[nodiscard]] std::optional<ScreenshotOcrRecognitionResult> cachedTextRecognitionResult() const;
     [[nodiscard]] ScreenshotRecognitionResults cachedRecognitionResults() const;
     [[nodiscard]] ScreenshotRecognitionResults recognitionResultsSnapshot() const;
     [[nodiscard]] bool hasTarget() const;
@@ -142,6 +146,8 @@ class ScreenshotRecognitionSessionController final : public QObject {
     void retryRecognition();
     [[nodiscard]] QString recognitionModelSelection(Mode mode) const;
     void deactivate();
+    void retireContentAttachment();
+    [[nodiscard]] bool ownsContentAttachment() const;
     void invalidate();
 
     [[nodiscard]] bool active() const;
@@ -208,6 +214,38 @@ class ScreenshotRecognitionSessionController final : public QObject {
     void workflowStateChanged() const;
 
   private:
+    [[nodiscard]] bool canPublishUi() const;
+    // Asset downloads can surface before recognition acquires a view. Only the current
+    // host may publish those prompts, including their eventual cleanup.
+    template <typename Callback, typename... Arguments>
+    bool notifyCurrentHostCallback(Callback callback, Arguments&&... arguments) const {
+        if (m_destroying)
+            return true;
+        const QPointer<const ScreenshotRecognitionSessionController> lifetime(this);
+        const auto generation = m_transitionGeneration;
+        const auto isCurrent = m_actions.isCurrentSession;
+        const bool current = !isCurrent || isCurrent();
+        if (!lifetime || generation != m_transitionGeneration)
+            return false;
+        if (!current)
+            return true;
+        if (!notifyCallback(std::move(callback), std::forward<Arguments>(arguments)...))
+            return false;
+        if (!lifetime || generation != m_transitionGeneration)
+            return false;
+        const bool stillCurrent = !isCurrent || isCurrent();
+        return lifetime && generation == m_transitionGeneration && stillCurrent;
+    }
+    template <typename Callback, typename... Arguments>
+    bool notifyUiCallback(Callback callback, Arguments&&... arguments) const {
+        if (!canPublishUi())
+            return true;
+        const QPointer<const ScreenshotRecognitionSessionController> lifetime(this);
+        const auto generation = m_transitionGeneration;
+        if (!notifyCallback(std::move(callback), std::forward<Arguments>(arguments)...))
+            return false;
+        return lifetime && generation == m_transitionGeneration && canPublishUi();
+    }
     template <typename Callback, typename... Arguments>
     bool notifyCallback(Callback callback, Arguments&&... arguments) const {
         if (m_destroying)
@@ -318,6 +356,7 @@ class ScreenshotRecognitionSessionController final : public QObject {
     void handleQrOutput(quint64 generation, const QString& key,
                         ScreenshotQrRecognitionResult result);
     void ensureContent();
+    void attachContent();
     void clearContent(bool retainTableEditor = false);
     void applyPresentation(const std::shared_ptr<ScreenshotOcrPresentation>& presentation,
                            QImage filteredImage = {}, QRectF filteredImageCanvasRect = {});
@@ -331,7 +370,12 @@ class ScreenshotRecognitionSessionController final : public QObject {
     void prepareOverlayTranslation(TextCacheEntry& entry);
     void reportOverlayTranslationFailure();
     void failTranslationPreparation(const QString& message);
-    void cancelTranslationRequests();
+#if SNOW_SHOT_ENABLE_TEXT_TRANSLATION
+    bool updateOverlayTranslationLine(const QString& key, ScreenshotOcrPresentation& presentation,
+                                      int index, const QString& text, bool streaming);
+    bool finishOverlayTranslationLines(const TextCacheEntry& entry, const QString& key);
+#endif
+    bool cancelTranslationRequests();
     void handleTranslationFinished(quint64 generation, const QString& key,
                                    SnowShotTranslationResult result);
     void invalidateCurrentTranslation(bool restartIfVisible);
@@ -377,6 +421,11 @@ class ScreenshotRecognitionSessionController final : public QObject {
     bool m_openingSpreadsheet = false;
     ScreenshotRecognitionTarget m_target;
     QPointer<ScreenshotRecognitionWindow> m_content;
+    quint64 m_attachmentToken = 0;
+    quint64 m_transitionGeneration = 0;
+    bool m_uiPublicationEnabled = true;
+    QMetaObject::Connection m_recognitionRetryConnection;
+    QMetaObject::Connection m_conversionRetryConnection;
     QHash<QString, TextCacheEntry> m_textCache;
 #if SNOW_SHOT_ENABLE_TABLE_RECOGNITION
     QHash<QString, TableCacheEntry> m_tableCache;

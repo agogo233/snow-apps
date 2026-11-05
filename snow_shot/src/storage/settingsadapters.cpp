@@ -162,6 +162,8 @@ const QStringList& pinToScreenShortcutActionIds() {
         QStringLiteral("flip_vertical"),
         QStringLiteral("reset_transform"),
         QStringLiteral("batch_select_all"),
+        QStringLiteral("batch_image_stitching"),
+        QStringLiteral("batch_copy_files_to_clipboard"),
         QStringLiteral("batch_save_as_file"),
     };
     return ids;
@@ -2073,6 +2075,39 @@ bool RecordingSettings::setWebcamShape(const QString& shape) const {
     return cache().setValue(QStringLiteral("screen_recording/webcam_shape"), shape);
 }
 
+bool RecordingSettings::recordNumberKeys() const {
+    return cache().value(QStringLiteral("screen_recording/record_number_keys")).toBool();
+}
+
+bool RecordingSettings::setRecordNumberKeys(bool enabled) const {
+    return cache().setValue(QStringLiteral("screen_recording/record_number_keys"), enabled);
+}
+
+bool RecordingSettings::recordLettersAndSymbols() const {
+    return cache().value(QStringLiteral("screen_recording/record_letters_and_symbols")).toBool();
+}
+
+bool RecordingSettings::setRecordLettersAndSymbols(bool enabled) const {
+    return cache().setValue(QStringLiteral("screen_recording/record_letters_and_symbols"), enabled);
+}
+
+bool RecordingSettings::recordControlKeys() const {
+    return cache().value(QStringLiteral("screen_recording/record_control_keys")).toBool();
+}
+
+bool RecordingSettings::setRecordControlKeys(bool enabled) const {
+    return cache().setValue(QStringLiteral("screen_recording/record_control_keys"), enabled);
+}
+
+bool RecordingSettings::preserveKeyboardShortcuts() const {
+    return cache().value(QStringLiteral("screen_recording/preserve_keyboard_shortcuts")).toBool();
+}
+
+bool RecordingSettings::setPreserveKeyboardShortcuts(bool enabled) const {
+    return cache().setValue(QStringLiteral("screen_recording/preserve_keyboard_shortcuts"),
+                            enabled);
+}
+
 bool RecordingSettings::showKeyboard() const {
     return cache().value(QStringLiteral("screen_recording/show_keyboard")).toBool();
 }
@@ -2720,6 +2755,17 @@ bool PinToScreenSettings::setTextSelectionOnRecognitionResults(const QString& mo
 
 bool PinToScreenSettings::automaticTextRecognition() const {
     return cache().value(QStringLiteral("pin_to_screen/automatic_text_recognition")).toBool();
+}
+
+bool PinToScreenSettings::quickAnnotationForSelectedText() const {
+    return cache()
+        .value(QStringLiteral("pin_to_screen/quick_annotation_for_selected_text"))
+        .toBool();
+}
+
+bool PinToScreenSettings::setQuickAnnotationForSelectedText(bool enabled) const {
+    return cache().setValue(QStringLiteral("pin_to_screen/quick_annotation_for_selected_text"),
+                            enabled);
 }
 
 bool PinToScreenSettings::setAutomaticTextRecognition(bool enabled) const {
