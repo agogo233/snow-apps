@@ -1,0 +1,255 @@
+name: Snow Shot Win x64 Portable
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: snow-shot-win-x64-portable-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  portable:
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 350
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Restore vcpkg dependencies cache
+        uses: actions/cache/restore@v4
+        with:
+          key: snow-vcpkg-static-x64-v1-${{ hashFiles('vcpkg.json', 'cmake/vcpkg-overlay-ports/**', 'cmake/vcpkg-overlay-triplets/**', 'scripts/bootstrap.ps1') }}
+          path: |
+            .tools/vcpkg/.git
+            .tools/vcpkg/.vcpkg-root
+            .tools/vcpkg/installed
+            .tools/vcpkg/scripts
+            .tools/vcpkg/ports
+            .tools/vcpkg/triplets
+            .tools/vcpkg/versions
+            .tools/vcpkg/vcpkg.exe
+            .tools/vcpkg/bootstrap-vcpkg.bat
+
+      - name: Restore static Qt cache
+        uses: actions/cache/restore@v4
+        with:
+          key: snow-qt-static-x64-v1-${{ hashFiles('scripts/qt-toolchain.json', 'scripts/static-qt-features.json', 'scripts/build-static-qt.ps1') }}
+          path: .tools/qt
+
+      - name: Restore Cargo registry cache
+        uses: actions/cache/restore@v4
+        with:
+          key: snow-cargo-x64-v1-${{ hashFiles('snow-crates/Cargo.lock', 'snow_rust_ffi/Cargo.lock') }}
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+
+      - name: Restore OCR assets cache
+        uses: actions/cache/restore@v4
+        with:
+          key: snow-ocr-assets-x64-v1-${{ hashFiles('snow_shot/packaging/snow-shot-ocr-asset-manifest.json') }}
+          path: |
+            build/snow-shot-msvc-release/snow-ocr-runtime-*-windows-x64.zip
+            artifacts/ocr-models-*
+
+      - name: Provision CMake 4.2 or newer
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $versionLine = if (Get-Command cmake -ErrorAction SilentlyContinue) {
+              (cmake --version | Select-Object -First 1)
+          }
+          $usable = $false
+          if ($versionLine -match 'cmake version (\d+)\.(\d+)') {
+              $usable = ([int]$Matches[1] -gt 4) -or
+                  ([int]$Matches[1] -eq 4 -and [int]$Matches[2] -ge 2)
+          }
+          if ($usable) {
+              Write-Host "Using preinstalled CMake: $versionLine"
+          }
+          else {
+              $cmakeRoot = Join-Path $env:RUNNER_TEMP 'cmake-4.2.3'
+              $cmakeBin = Join-Path $cmakeRoot 'cmake-4.2.3-windows-x86_64/bin'
+              if (-not (Test-Path -LiteralPath (Join-Path $cmakeBin 'cmake.exe') -PathType Leaf)) {
+                  $archive = Join-Path $env:RUNNER_TEMP 'cmake-4.2.3.zip'
+                  Invoke-WebRequest -Uri 'https://github.com/Kitware/CMake/releases/download/v4.2.3/cmake-4.2.3-windows-x86_64.zip' `
+                      -OutFile $archive -TimeoutSec 900
+                  Expand-Archive -LiteralPath $archive -DestinationPath $cmakeRoot -Force
+              }
+              $cmakeBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+              & (Join-Path $cmakeBin 'cmake.exe') --version
+          }
+
+      - name: Provision libclang for Rust bindgen
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $candidates = @(
+              (Join-Path $env:ProgramFiles 'LLVM/bin'),
+              (Join-Path ${env:ProgramFiles(x86)} 'LLVM/bin')
+          )
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
+          if (Test-Path -LiteralPath $vswhere -PathType Leaf) {
+              $installationPath = & $vswhere -latest -products * -property installationPath
+              if ($installationPath) {
+                  $candidates += @(
+                      (Join-Path $installationPath 'VC/Tools/Llvm/x64/bin'),
+                      (Join-Path $installationPath 'VC/Tools/Llvm/bin')
+                  )
+              }
+          }
+          $libclangDirectory = $candidates |
+              Where-Object { Test-Path -LiteralPath (Join-Path $_ 'libclang.dll') -PathType Leaf } |
+              Select-Object -First 1
+          if (-not $libclangDirectory) {
+              choco install llvm -y --no-progress
+              $libclangDirectory = Join-Path $env:ProgramFiles 'LLVM/bin'
+              if (-not (Test-Path -LiteralPath (Join-Path $libclangDirectory 'libclang.dll') -PathType Leaf)) {
+                  throw 'libclang.dll was not provisioned.'
+              }
+          }
+          Write-Host "LIBCLANG_PATH=$libclangDirectory"
+          "LIBCLANG_PATH=$libclangDirectory" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Provision NSIS for the offline installer
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $makensis = Get-Command makensis -ErrorAction SilentlyContinue
+          if (-not $makensis) {
+              foreach ($candidate in @(
+                      (Join-Path ${env:ProgramFiles(x86)} 'NSIS'),
+                      (Join-Path $env:ProgramFiles 'NSIS')
+                  )) {
+                  if (Test-Path -LiteralPath (Join-Path $candidate 'makensis.exe') -PathType Leaf) {
+                      $makensis = $candidate
+                      break
+                  }
+              }
+          }
+          if (-not $makensis) {
+              choco install nsis -y --no-progress
+              & (Join-Path $env:ProgramFiles 'NSIS/makensis.exe') /VERSION
+          }
+          else {
+              Write-Host "NSIS is available: $makensis"
+          }
+
+      - name: Install static vcpkg dependencies
+        run: ./scripts/bootstrap.ps1 -Architecture x64 -VcpkgVariants Static -SkipQtValidation
+
+      - name: Save vcpkg dependencies cache
+        uses: actions/cache/save@v4
+        with:
+          key: snow-vcpkg-static-x64-v1-${{ hashFiles('vcpkg.json', 'cmake/vcpkg-overlay-ports/**', 'cmake/vcpkg-overlay-triplets/**', 'scripts/bootstrap.ps1') }}
+          path: |
+            .tools/vcpkg/.git
+            .tools/vcpkg/.vcpkg-root
+            .tools/vcpkg/installed
+            .tools/vcpkg/scripts
+            .tools/vcpkg/ports
+            .tools/vcpkg/triplets
+            .tools/vcpkg/versions
+            .tools/vcpkg/vcpkg.exe
+            .tools/vcpkg/bootstrap-vcpkg.bat
+
+      - name: Build static Qt 6.12.0
+        run: ./scripts/build-static-qt.ps1 -Architecture x64 `
+          -InstallPrefix .tools/qt/6.12.0/msvc2026_64-static-system-codecs
+
+      - name: Save static Qt cache
+        uses: actions/cache/save@v4
+        with:
+          key: snow-qt-static-x64-v1-${{ hashFiles('scripts/qt-toolchain.json', 'scripts/static-qt-features.json', 'scripts/build-static-qt.ps1') }}
+          path: .tools/qt
+
+      - name: Verify or download pinned OCR assets
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $manifest = Get-Content -LiteralPath 'snow_shot/packaging/snow-shot-ocr-asset-manifest.json' -Raw |
+              ConvertFrom-Json
+          $buildDirectory = 'build/snow-shot-msvc-release'
+          New-Item -ItemType Directory -Force -Path $buildDirectory | Out-Null
+
+          function Save-VerifiedSnowAsset {
+              param(
+                  [Parameter(Mandatory)][string]$Url,
+                  [Parameter(Mandatory)][string]$Path,
+                  [Parameter(Mandatory)][string]$Sha256,
+                  [Parameter(Mandatory)][long]$Bytes
+              )
+              if (Test-Path -LiteralPath $Path -PathType Leaf) {
+                  if ((Get-Item -LiteralPath $Path).Length -eq $Bytes -and
+                      (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant() -ceq $Sha256) {
+                      Write-Host "Cached asset is valid: $Path"
+                      return
+                  }
+                  Remove-Item -LiteralPath $Path -Force
+              }
+              New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Path) | Out-Null
+              for ($attempt = 1; $attempt -le 3; $attempt++) {
+                  try {
+                      Invoke-WebRequest -Uri $Url -OutFile $Path -TimeoutSec 900 -MaximumRedirection 5
+                      break
+                  }
+                  catch {
+                      if ($attempt -eq 3) { throw }
+                      Start-Sleep -Seconds (10 * $attempt)
+                  }
+              }
+              if ((Get-Item -LiteralPath $Path).Length -ne $Bytes -or
+                  (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant() -cne $Sha256) {
+                  throw "Downloaded asset failed verification: $Path"
+              }
+          }
+
+          $runtime = $manifest.runtime.archive
+          Save-VerifiedSnowAsset -Url $runtime.url -Path (Join-Path $buildDirectory $runtime.name) `
+              -Sha256 $runtime.sha256 -Bytes ([long]$runtime.size)
+          foreach ($model in $manifest.models) {
+              $modelDirectory = Join-Path 'artifacts' "ocr-models-$($model.id)"
+              foreach ($file in $model.files) {
+                  Save-VerifiedSnowAsset -Url $file.url -Path (Join-Path $modelDirectory $file.name) `
+                      -Sha256 $file.sha256 -Bytes ([long]$file.size)
+              }
+          }
+
+      - name: Save OCR assets cache
+        uses: actions/cache/save@v4
+        with:
+          key: snow-ocr-assets-x64-v1-${{ hashFiles('snow_shot/packaging/snow-shot-ocr-asset-manifest.json') }}
+          path: |
+            build/snow-shot-msvc-release/snow-ocr-runtime-*-windows-x64.zip
+            artifacts/ocr-models-*
+
+      - name: Build and package the portable archive
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $runtimeArchive = Get-ChildItem -LiteralPath 'build/snow-shot-msvc-release' `
+              -Filter 'snow-ocr-runtime-*-windows-x64.zip' | Select-Object -First 1
+          if (-not $runtimeArchive) { throw 'The OCR runtime archive was not found.' }
+          ./scripts/package-snow-shot.ps1 -Architecture x64 -Parallelism 4 `
+              -OcrRuntimeArchive $runtimeArchive.FullName
+
+      - name: Save Cargo registry cache
+        uses: actions/cache/save@v4
+        with:
+          key: snow-cargo-x64-v1-${{ hashFiles('snow-crates/Cargo.lock', 'snow_rust_ffi/Cargo.lock') }}
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+
+      - name: Upload the portable archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: snow-shot-win-x64-portable
+          path: build/snow-shot-msvc-release/snow-shot-*-windows-x64-portable.zip
+          if-no-files-found: error
