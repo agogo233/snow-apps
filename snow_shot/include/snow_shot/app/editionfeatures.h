@@ -1,6 +1,7 @@
 #ifndef SNOW_SHOT_APP_EDITIONFEATURES_H
 #define SNOW_SHOT_APP_EDITIONFEATURES_H
 
+#include "snow_shot/app/distribution.h"
 #include "snow_shot/app/edition.h"
 
 #include <QString>
@@ -53,6 +54,8 @@ namespace snow_shot::app {
 }
 
 [[nodiscard]] inline bool editionConfigurationKeyAvailable(const QString& key) {
+    if (distribution::updateChecksDisabled() && key == QStringLiteral("updates/mode"))
+        return false;
     if (!edition::apiConfiguration && key.startsWith(QStringLiteral("api_configuration/")))
         return false;
     if (!edition::extendedFeatures && key.startsWith(QStringLiteral("extended_features/")))

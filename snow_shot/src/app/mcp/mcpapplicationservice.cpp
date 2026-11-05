@@ -1,3 +1,4 @@
+#include "snow_shot/app/distribution.h"
 #include "snow_shot/app/mcp/mcpedition.h"
 #include "snow_shot/app/mcp/mcpapplicationservice.h"
 #include "snow_shot/app/mcp/mcpjobregistry.h"
@@ -783,7 +784,8 @@ void McpApplicationService::Impl::handle(const ScreenshotMcpRequest& request,
     } else if (method == u"snow_shot_updates_status") {
         finish(updateJson(ports.updates));
     } else if (method == u"snow_shot_updates_action") {
-        if (!ports.updates || ports.updates->managedByStore()) {
+        if (snow_shot::app::distribution::updateChecksDisabled() || !ports.updates ||
+            ports.updates->managedByStore()) {
             error(QStringLiteral("unsupported"));
             return;
         }

@@ -11,11 +11,24 @@
 #define SNOW_SHOT_STORE_BUILD 0
 #endif
 #endif
+#ifndef SNOW_SHOT_DISABLE_UPDATE_CHECKS
+#ifdef SNOW_SHOT_CONFIGURED_UPDATE_CHECKS_DISABLED
+#define SNOW_SHOT_DISABLE_UPDATE_CHECKS SNOW_SHOT_CONFIGURED_UPDATE_CHECKS_DISABLED
+#else
+#define SNOW_SHOT_DISABLE_UPDATE_CHECKS 0
+#endif
+#endif
 #ifndef SNOW_SHOT_PRIVACY_POLICY_URL
 #define SNOW_SHOT_PRIVACY_POLICY_URL "https://snowshot.top/privacy.html"
 #endif
 
 namespace snow_shot::app::distribution {
+
+// Builds with SNOW_SHOT_DISABLE_UPDATE_CHECKS must not perform update network
+// requests or expose update settings UI.
+[[nodiscard]] inline bool updateChecksDisabled() {
+    return SNOW_SHOT_DISABLE_UPDATE_CHECKS != 0;
+}
 
 struct Policy {
     bool managedByStore = false;

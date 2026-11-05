@@ -1,3 +1,4 @@
+#include "snow_shot/app/distribution.h"
 #include "snow_shot/app/edition.h"
 #include "snow_shot/update/updateservice.h"
 
@@ -464,12 +465,14 @@ bool UpdateService::busy() const {
     return m_impl->busy();
 }
 void UpdateService::start() {
-    if (m_impl->started)
+    if (m_impl->started || snow_shot::app::distribution::updateChecksDisabled())
         return;
     m_impl->started = true;
     m_impl->arm(m_impl->options.startupCheckDelay);
 }
 void UpdateService::setMode(const QString& value) {
+    if (snow_shot::app::distribution::updateChecksDisabled())
+        return;
     const QString mode = value == u"download" ? QStringLiteral("check") : value;
     if ((mode != u"manual" && mode != u"check") || mode == m_impl->mode)
         return;
@@ -489,6 +492,8 @@ void UpdateService::setSystemProxy(bool enabled) {
         m_impl->network.setProxy(QNetworkProxy::NoProxy);
 }
 void UpdateService::check(bool manual) {
+    if (snow_shot::app::distribution::updateChecksDisabled())
+        return;
     m_impl->check(manual);
 }
 void UpdateService::cancel() {

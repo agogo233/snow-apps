@@ -657,7 +657,8 @@ int main(int argc, char* argv[]) {
     snow_shot::presentation::styles::ThemeManager::instance().initialize(app);
 #ifdef Q_OS_WIN
     auto& applicationStorage = snow_shot::storage::ApplicationStorage::instance();
-    if (!snow_shot::app::distribution::isStoreManaged() && !updaterRelaunch &&
+    if (!snow_shot::app::distribution::updateChecksDisabled() &&
+        !snow_shot::app::distribution::isStoreManaged() && !updaterRelaunch &&
         snow_shot::update::startupUpdateMayDelayLaunch(launchArguments) &&
         applicationStorage.configuration().value(QStringLiteral("updates/mode")).toString() ==
             u"next_launch") {

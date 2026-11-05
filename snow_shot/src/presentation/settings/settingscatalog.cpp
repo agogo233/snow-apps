@@ -4526,10 +4526,10 @@ SettingsCatalog::SettingsCatalog(QVector<SettingsPageDefinition> pages,
                                  SettingsLocation defaultLocation)
     : m_pages(std::move(pages)), m_navigation(std::move(navigation)),
       m_defaultLocation(std::move(defaultLocation)) {
-    if constexpr (!app::edition::qrRecognition || !app::edition::tableRecognition ||
-                  !app::edition::imageConversion || !app::edition::latexRecognition ||
-                  !app::edition::textTranslation || !app::edition::apiConfiguration ||
-                  !app::edition::extendedFeatures) {
+    if constexpr (SNOW_SHOT_DISABLE_UPDATE_CHECKS != 0 || !app::edition::qrRecognition ||
+                  !app::edition::tableRecognition || !app::edition::imageConversion ||
+                  !app::edition::latexRecognition || !app::edition::textTranslation ||
+                  !app::edition::apiConfiguration || !app::edition::extendedFeatures) {
         const auto pageAvailable = [](const QString& id) {
             return (app::edition::textTranslation || id != QStringLiteral("translation")) &&
                    (app::edition::apiConfiguration || id != QStringLiteral("api-configuration")) &&

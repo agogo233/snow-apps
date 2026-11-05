@@ -778,7 +778,8 @@ bool UpdateService::handoffPending() const {
 }
 
 void UpdateService::start() {
-    if (m_impl->started || managedByStore()) {
+    if (m_impl->started || managedByStore() ||
+        snow_shot::app::distribution::updateChecksDisabled()) {
         return;
     }
     m_impl->started = true;
@@ -867,10 +868,14 @@ void UpdateService::setProgressAppearance(const QJsonObject& appearance) {
 }
 
 void UpdateService::check(bool manual) {
+    if (snow_shot::app::distribution::updateChecksDisabled())
+        return;
     m_impl->request(Operation::Check, manual ? Trigger::User : Trigger::Periodic);
 }
 
 void UpdateService::download() {
+    if (snow_shot::app::distribution::updateChecksDisabled())
+        return;
     m_impl->request(Operation::Download, Trigger::User);
 }
 
@@ -895,10 +900,14 @@ void UpdateService::requestRestart() {
 }
 
 void UpdateService::beginApply() {
+    if (snow_shot::app::distribution::updateChecksDisabled())
+        return;
     m_impl->request(Operation::Apply, Trigger::User);
 }
 
 void UpdateService::applyAtStartup() {
+    if (snow_shot::app::distribution::updateChecksDisabled())
+        return;
     m_impl->request(Operation::Apply, Trigger::Startup);
 }
 

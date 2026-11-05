@@ -508,8 +508,13 @@ AboutPageWidget::AboutPageWidget(QWidget* parent, UrlOpener urlOpener,
     m_ui->versionLayout->addLayout(m_ui->versionActions);
     m_ui->bodyLayout->addWidget(m_ui->versionPanel);
 
+#if SNOW_SHOT_DISABLE_UPDATE_CHECKS
+    m_ui->updates = nullptr;
+    static_cast<void>(updates);
+#else
     m_ui->updates =
         updates != nullptr ? updates : qApp->findChild<snow_shot::update::UpdateService*>();
+#endif
     if (m_ui->updates != nullptr) {
         m_ui->updateDivider = new AdDivider(m_ui->versionPanel);
         m_ui->updateDivider->setObjectName(QStringLiteral("aboutUpdateDivider"));
