@@ -90,6 +90,18 @@ jobs:
               & (Join-Path $cmakeBin 'cmake.exe') --version
           }
 
+      - name: Pin the host Rust toolchain
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # The release build denies warnings, and the runner-default stable
+          # Rust is newer than the repository's pinned toolchains and already
+          # deprecates APIs the workspace still uses (for example
+          # AtomicU64::fetch_update). Match the newest stable pin in the
+          # repository (snow-draw-engine-gpui pins 1.98.1).
+          rustup default 1.98.1
+          rustc --version
+          cargo --version
+
       - name: Provision libclang for Rust bindgen
         run: |
           $ErrorActionPreference = 'Stop'
