@@ -27,6 +27,7 @@ jobs:
           submodules: recursive
 
       - name: Restore vcpkg dependencies cache
+        id: restore-vcpkg
         uses: actions/cache/restore@v4
         with:
           key: snow-vcpkg-static-x64-v1-${{ hashFiles('vcpkg.json', 'cmake/vcpkg-overlay-ports/**', 'cmake/vcpkg-overlay-triplets/**', 'scripts/bootstrap.ps1') }}
@@ -42,12 +43,14 @@ jobs:
             .tools/vcpkg/bootstrap-vcpkg.bat
 
       - name: Restore static Qt cache
+        id: restore-qt
         uses: actions/cache/restore@v4
         with:
           key: snow-qt-static-x64-v1-${{ hashFiles('scripts/qt-toolchain.json', 'scripts/static-qt-features.json', 'scripts/build-static-qt.ps1') }}
           path: .tools/qt
 
       - name: Restore Cargo registry cache
+        id: restore-cargo
         uses: actions/cache/restore@v4
         with:
           key: snow-cargo-x64-v1-${{ hashFiles('snow-crates/Cargo.lock', 'snow_rust_ffi/Cargo.lock') }}
@@ -56,6 +59,7 @@ jobs:
             ~/.cargo/git
 
       - name: Restore OCR assets cache
+        id: restore-ocr
         uses: actions/cache/restore@v4
         with:
           key: snow-ocr-assets-x64-v1-${{ hashFiles('snow_shot/packaging/snow-shot-ocr-asset-manifest.json') }}
@@ -163,6 +167,7 @@ jobs:
         run: ./scripts/bootstrap.ps1 -Architecture x64 -VcpkgVariants Static -SkipQtValidation
 
       - name: Save vcpkg dependencies cache
+        if: steps.restore-vcpkg.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           key: snow-vcpkg-static-x64-v1-${{ hashFiles('vcpkg.json', 'cmake/vcpkg-overlay-ports/**', 'cmake/vcpkg-overlay-triplets/**', 'scripts/bootstrap.ps1') }}
@@ -182,6 +187,7 @@ jobs:
           -InstallPrefix .tools/qt/6.12.0/msvc2026_64-static-system-codecs
 
       - name: Save static Qt cache
+        if: steps.restore-qt.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           key: snow-qt-static-x64-v1-${{ hashFiles('scripts/qt-toolchain.json', 'scripts/static-qt-features.json', 'scripts/build-static-qt.ps1') }}
@@ -239,12 +245,39 @@ jobs:
           }
 
       - name: Save OCR assets cache
+        if: steps.restore-ocr.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           key: snow-ocr-assets-x64-v1-${{ hashFiles('snow_shot/packaging/snow-shot-ocr-asset-manifest.json') }}
           path: |
             build/snow-shot-msvc-release/snow-ocr-runtime-*-windows-x64.zip
             artifacts/ocr-models-*
+
+      - name: Fetch Rust dependencies for offline license collection
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # collect-third-party-licenses.ps1 runs cargo metadata --offline, which
+          # needs every locked crate (including dev-dependencies such as anes)
+          # in the local registry. Fetch all packaging manifests so the offline
+          # metadata passes even on a fresh runner.
+          foreach ($manifest in @(
+                  'snow_rust_ffi/Cargo.toml',
+                  'snow-crates/Cargo.toml',
+                  'snow_shot/rust/snow-shot-mcp/Cargo.toml',
+                  'snow_shot/rust/snow-shot-updater/Cargo.toml'
+              )) {
+              cargo fetch --locked --manifest-path $manifest
+              if ($LASTEXITCODE -ne 0) { throw "cargo fetch failed for $manifest" }
+          }
+
+      - name: Save Cargo registry cache
+        if: steps.restore-cargo.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          key: snow-cargo-x64-v1-${{ hashFiles('snow-crates/Cargo.lock', 'snow_rust_ffi/Cargo.lock') }}
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
 
       - name: Build and package the portable archive
         run: |
@@ -254,14 +287,6 @@ jobs:
           if (-not $runtimeArchive) { throw 'The OCR runtime archive was not found.' }
           ./scripts/package-snow-shot.ps1 -Architecture x64 -Parallelism 4 `
               -OcrRuntimeArchive $runtimeArchive.FullName
-
-      - name: Save Cargo registry cache
-        uses: actions/cache/save@v4
-        with:
-          key: snow-cargo-x64-v1-${{ hashFiles('snow-crates/Cargo.lock', 'snow_rust_ffi/Cargo.lock') }}
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
 
       - name: Upload the portable archive
         uses: actions/upload-artifact@v4
