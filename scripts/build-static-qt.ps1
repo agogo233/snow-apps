@@ -568,6 +568,10 @@ $sourceUrls = @(
 if (-not (Test-Path -LiteralPath $sourceDirectory -PathType Container)) {
     if (-not (Test-Path -LiteralPath $archivePath -PathType Leaf)) {
         $downloaded = $false
+        # Save-RemoteFile streams into the archive, so its parent directory
+        # must exist before the first mirror attempt on a fresh work root.
+        New-Item -ItemType Directory -Force -Path ([IO.Path]::GetDirectoryName($archivePath)) |
+            Out-Null
         foreach ($sourceUrl in $sourceUrls) {
             try {
                 Save-RemoteFile -Uri $sourceUrl -Destination $archivePath
