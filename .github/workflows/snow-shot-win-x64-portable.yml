@@ -292,5 +292,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: snow-shot-win-x64-portable
-          path: build/snow-shot-msvc-release/snow-shot-*-windows-x64-portable.zip
+          path: build/snow-shot-msvc-release/snow-shot-[0-9]*-windows-x64-portable.zip
+          if-no-files-found: error
+
+      - name: Upload the mini portable archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: snow-shot-mini-win-x64-portable
+          path: build/snow-shot-msvc-release/snow-shot-mini-*-windows-x64-portable.zip
           if-no-files-found: error
