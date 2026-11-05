@@ -123,25 +123,29 @@ jobs:
       - name: Provision NSIS for the offline installer
         run: |
           $ErrorActionPreference = 'Stop'
-          $makensis = Get-Command makensis -ErrorAction SilentlyContinue
-          if (-not $makensis) {
-              foreach ($candidate in @(
-                      (Join-Path ${env:ProgramFiles(x86)} 'NSIS'),
-                      (Join-Path $env:ProgramFiles 'NSIS')
-                  )) {
+          $candidates = @(
+              (Join-Path ${env:ProgramFiles(x86)} 'NSIS'),
+              (Join-Path $env:ProgramFiles 'NSIS')
+          )
+          function Find-Makensis {
+              param([string[]]$Paths)
+              foreach ($candidate in $Paths) {
                   if (Test-Path -LiteralPath (Join-Path $candidate 'makensis.exe') -PathType Leaf) {
-                      $makensis = $candidate
-                      break
+                      return (Join-Path $candidate 'makensis.exe')
                   }
               }
+              return $null
           }
-          if (-not $makensis) {
+          $makensisCommand = Get-Command makensis -ErrorAction SilentlyContinue
+          $makensisPath = if ($makensisCommand) { $makensisCommand.Source } else { Find-Makensis $candidates }
+          if (-not $makensisPath) {
               choco install nsis -y --no-progress
-              & (Join-Path $env:ProgramFiles 'NSIS/makensis.exe') /VERSION
+              if ($LASTEXITCODE -ne 0) { throw "choco install nsis failed with exit code $LASTEXITCODE." }
+              $makensisPath = Find-Makensis $candidates
           }
-          else {
-              Write-Host "NSIS is available: $makensis"
-          }
+          if (-not $makensisPath) { throw 'makensis.exe was not found after provisioning NSIS.' }
+          Write-Host "NSIS makensis: $makensisPath"
+          & $makensisPath /VERSION
 
       - name: Install static vcpkg dependencies
         run: ./scripts/bootstrap.ps1 -Architecture x64 -VcpkgVariants Static -SkipQtValidation
