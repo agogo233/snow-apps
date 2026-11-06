@@ -67,7 +67,7 @@ jobs:
         id: restore-sccache
         uses: actions/cache/restore@v4
         with:
-          key: snow-sccache-x64-v1
+          key: snow-sccache-x64-v1-${{ hashFiles('snow-crates/Cargo.lock', 'snow_rust_ffi/Cargo.lock') }}
           path: .sccache
 
       - name: Restore OCR assets cache
@@ -330,7 +330,7 @@ jobs:
         if: steps.restore-sccache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          key: snow-sccache-x64-v1
+          key: snow-sccache-x64-v1-${{ hashFiles('snow-crates/Cargo.lock', 'snow_rust_ffi/Cargo.lock') }}
           path: .sccache
 
       - name: Finalize portable stages
