@@ -293,16 +293,18 @@ jobs:
           $ErrorActionPreference = 'Stop'
           # The update helper and its installation manifest only serve the
           # update flow that -DisableUpdateChecks removed at compile time.
-          # share/<product>/licenses is kept for GPL compliance.
+          # share/<product>/licenses is kept for GPL compliance. Each stage is
+          # renamed to a fixed directory so the upload path has no wildcard
+          # and the artifact contents are laid out at the archive root.
           foreach ($stage in @(
-                  @{ Root = 'artifacts/snow-shot-[0-9]*-portable-stage'; Files = @(
-                          'bin/snow-shot-updater.exe', 'snow-shot-installation.json') },
-                  @{ Root = 'artifacts/snow-shot-mini-*-portable-stage'; Files = @(
-                          'bin/snow-shot-mini-updater.exe', 'snow-shot-mini-installation.json') }
+                  @{ Glob = 'artifacts/snow-shot-[0-9]*-portable-stage'; Name = 'portable-stage';
+                      Files = @('bin/snow-shot-updater.exe', 'snow-shot-installation.json') },
+                  @{ Glob = 'artifacts/snow-shot-mini-*-portable-stage'; Name = 'portable-stage-mini';
+                      Files = @('bin/snow-shot-mini-updater.exe', 'snow-shot-mini-installation.json') }
               )) {
-              $directories = @(Get-ChildItem -Path $stage.Root -Directory)
+              $directories = @(Get-ChildItem -Path $stage.Glob -Directory)
               if ($directories.Count -ne 1) {
-                  throw "Expected exactly one stage directory for $($stage.Root), found $($directories.Count)."
+                  throw "Expected exactly one stage directory for $($stage.Glob), found $($directories.Count)."
               }
               foreach ($relative in $stage.Files) {
                   $path = Join-Path $directories[0].FullName $relative
@@ -311,20 +313,27 @@ jobs:
                   }
                   Remove-Item -LiteralPath $path -Force
               }
-              $remaining = @(Get-ChildItem -LiteralPath $directories[0].FullName -Recurse -File).Count
-              Write-Host "Finalized $($directories[0].Name): $remaining files remain."
+              $destination = Join-Path 'artifacts' $stage.Name
+              if (Test-Path -LiteralPath $destination) {
+                  throw "Unexpected existing directory: $destination"
+              }
+              Rename-Item -LiteralPath $directories[0].FullName -NewName $stage.Name
+              $remaining = @(Get-ChildItem -LiteralPath $destination -Recurse -File).Count
+              Write-Host "Finalized $($stage.Name): $remaining files remain."
           }
 
       - name: Upload the portable archive
         uses: actions/upload-artifact@v4
         with:
           name: snow-shot-win-x64-portable
-          path: artifacts/snow-shot-[0-9]*-portable-stage
+          path: artifacts/portable-stage
+          include-hidden-files: true
           if-no-files-found: error
 
       - name: Upload the mini portable archive
         uses: actions/upload-artifact@v4
         with:
           name: snow-shot-mini-win-x64-portable
-          path: artifacts/snow-shot-mini-*-portable-stage
+          path: artifacts/portable-stage-mini
+          include-hidden-files: true
           if-no-files-found: error
