@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      include_mini:
+        description: Also build and package the Mini portable archive
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -58,6 +63,13 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
 
+      - name: Restore sccache cache
+        id: restore-sccache
+        uses: actions/cache/restore@v4
+        with:
+          key: snow-sccache-x64-v1
+          path: .sccache
+
       - name: Restore OCR assets cache
         id: restore-ocr
         uses: actions/cache/restore@v4
@@ -105,6 +117,29 @@ jobs:
           rustup default 1.98.1
           rustc --version
           cargo --version
+
+      - name: Provision sccache for Rust builds
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = 'v0.10.0'
+          $root = Join-Path $env:RUNNER_TEMP "sccache-$version"
+          $exe = Get-ChildItem -LiteralPath $root -Recurse -Filter sccache.exe -ErrorAction SilentlyContinue |
+              Select-Object -First 1
+          if (-not $exe) {
+              $archive = Join-Path $env:RUNNER_TEMP "sccache-$version.zip"
+              Invoke-WebRequest -Uri "https://github.com/mozilla/sccache/releases/download/$version/sccache-$version-x86_64-pc-windows-msvc.zip" `
+                  -OutFile $archive -TimeoutSec 900
+              Expand-Archive -LiteralPath $archive -DestinationPath $root -Force
+              $exe = Get-ChildItem -LiteralPath $root -Recurse -Filter sccache.exe | Select-Object -First 1
+          }
+          if (-not $exe) { throw 'sccache.exe was not provisioned.' }
+          Write-Host "sccache executable: $($exe.FullName)"
+          $cacheDirectory = Join-Path $env:GITHUB_WORKSPACE '.sccache'
+          New-Item -ItemType Directory -Force -Path $cacheDirectory | Out-Null
+          "SCCACHE_DIR=$cacheDirectory" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "RUSTC_WRAPPER=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SCCACHE_CACHE_SIZE=2G" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          & $exe.FullName --version
 
       - name: Provision libclang for Rust bindgen
         run: |
@@ -282,11 +317,21 @@ jobs:
       - name: Build and package the portable archive
         run: |
           $ErrorActionPreference = 'Stop'
+          $includeMini = '${{ github.event_name == 'workflow_dispatch' && inputs.include_mini == true }}' -eq 'true'
           $runtimeArchive = Get-ChildItem -LiteralPath 'build/snow-shot-msvc-release' `
               -Filter 'snow-ocr-runtime-*-windows-x64.zip' | Select-Object -First 1
           if (-not $runtimeArchive) { throw 'The OCR runtime archive was not found.' }
-          ./scripts/package-snow-shot.ps1 -Architecture x64 -Parallelism 4 `
-              -OcrRuntimeArchive $runtimeArchive.FullName -DisableUpdateChecks
+          $packageArguments = @('-Architecture', 'x64', '-Parallelism', '4',
+              '-OcrRuntimeArchive', $runtimeArchive.FullName, '-DisableUpdateChecks')
+          if (-not $includeMini) { $packageArguments += '-SkipMini' }
+          ./scripts/package-snow-shot.ps1 @packageArguments
+
+      - name: Save sccache cache
+        if: steps.restore-sccache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          key: snow-sccache-x64-v1
+          path: .sccache
 
       - name: Finalize portable stages
         run: |
@@ -296,12 +341,16 @@ jobs:
           # share/<product>/licenses is kept for GPL compliance. Each stage is
           # renamed to a fixed directory so the upload path has no wildcard
           # and the artifact contents are laid out at the archive root.
-          foreach ($stage in @(
-                  @{ Glob = 'artifacts/snow-shot-[0-9]*-portable-stage'; Name = 'portable-stage';
-                      Files = @('bin/snow-shot-updater.exe', 'snow-shot-installation.json') },
-                  @{ Glob = 'artifacts/snow-shot-mini-*-portable-stage'; Name = 'portable-stage-mini';
-                      Files = @('bin/snow-shot-mini-updater.exe', 'snow-shot-mini-installation.json') }
-              )) {
+          $includeMini = '${{ github.event_name == 'workflow_dispatch' && inputs.include_mini == true }}' -eq 'true'
+          $stages = @(
+              @{ Glob = 'artifacts/snow-shot-[0-9]*-portable-stage'; Name = 'portable-stage';
+                  Files = @('bin/snow-shot-updater.exe', 'snow-shot-installation.json') }
+          )
+          if ($includeMini) {
+              $stages += @{ Glob = 'artifacts/snow-shot-mini-*-portable-stage'; Name = 'portable-stage-mini';
+                  Files = @('bin/snow-shot-mini-updater.exe', 'snow-shot-mini-installation.json') }
+          }
+          foreach ($stage in $stages) {
               $directories = @(Get-ChildItem -Path $stage.Glob -Directory)
               if ($directories.Count -ne 1) {
                   throw "Expected exactly one stage directory for $($stage.Glob), found $($directories.Count)."
@@ -331,6 +380,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload the mini portable archive
+        if: github.event_name == 'workflow_dispatch' && inputs.include_mini == true
         uses: actions/upload-artifact@v4
         with:
           name: snow-shot-mini-win-x64-portable
