@@ -444,6 +444,7 @@ if(NOT TARGET snow_image::snow_image)
     set(SNOW_IMAGE_CODEC_HEIF ON CACHE BOOL "Enable HEIF and AVIF codecs." FORCE)
     set(SNOW_IMAGE_CODEC_JXL ON CACHE BOOL "Enable JPEG XL codecs." FORCE)
     set(SNOW_IMAGE_CODEC_WEBP ON CACHE BOOL "Enable WebP codecs." FORCE)
+    set(SNOW_IMAGE_CODEC_TIFF ON CACHE BOOL "Enable TIFF codecs." FORCE)
     add_subdirectory("${SNOW_SHOT_SNOW_IMAGE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/snow_image")
 endif()
 if(NOT TARGET snow_image::snow_image_static)
@@ -1303,7 +1304,8 @@ target_link_libraries(snow_shot_collage PUBLIC snow_shot_collage_core snow_shot_
 
 add_library(snow_shot_image_split_core STATIC
     include/snow_shot/presentation/imagesplitdocument.h
-    src/presentation/imagesplit/imagesplitdocument.cpp)
+    src/presentation/imagesplit/imagesplitdocument.cpp
+    src/presentation/imagesplit/imagesplitsmartlayout.cpp)
 target_include_directories(snow_shot_image_split_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(snow_shot_image_split_core PUBLIC Qt6::Widgets)
 add_library(snow_shot_image_split STATIC
@@ -1599,6 +1601,11 @@ if(SNOW_SHOT_BUILD_TESTS)
     target_link_libraries(snow-shot-image-split-document-tests PRIVATE snow_shot_image_split_core)
     add_test(NAME snow-shot-image-split-document-tests COMMAND snow-shot-image-split-document-tests)
     set_tests_properties(snow-shot-image-split-document-tests PROPERTIES LABELS unit
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>")
+    add_executable(snow-shot-image-split-smart-tests tests/imagesplit_smart_tests.cpp)
+    target_link_libraries(snow-shot-image-split-smart-tests PRIVATE snow_shot_image_split_core)
+    add_test(NAME snow-shot-image-split-smart-tests COMMAND snow-shot-image-split-smart-tests)
+    set_tests_properties(snow-shot-image-split-smart-tests PROPERTIES LABELS unit
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>")
     foreach(_image_split_test IN ITEMS editor window export)
         add_executable(snow-shot-image-split-${_image_split_test}-tests
@@ -6110,6 +6117,13 @@ if(SNOW_SHOT_BUILD_TESTS)
             "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>")
     add_test(NAME snow-shot-clipboard-import-routing-tests
              COMMAND snow-shot-clipboard-content-tests --import-routing-only)
+    add_test(NAME snow-shot-clipboard-tiff-tests
+             COMMAND snow-shot-clipboard-content-tests --tiff-only)
+    set_tests_properties(snow-shot-clipboard-tiff-tests PROPERTIES
+        LABELS unit SNOW_TEST_CROSS_PLATFORM TRUE
+        ENVIRONMENT "${_SNOW_SHOT_OFFSCREEN_QPA_ENVIRONMENT}"
+        ENVIRONMENT_MODIFICATION
+            "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>")
     set_tests_properties(snow-shot-clipboard-import-routing-tests PROPERTIES
         LABELS unit SNOW_TEST_CROSS_PLATFORM TRUE
         ENVIRONMENT "${_SNOW_SHOT_OFFSCREEN_QPA_ENVIRONMENT}"
@@ -6603,6 +6617,9 @@ if(SNOW_SHOT_BUILD_TESTS)
         target_link_libraries(snow-shot-export-artifact-tests PRIVATE user32)
     endif()
     add_test(NAME snow-shot-export-artifact-tests COMMAND snow-shot-export-artifact-tests)
+    add_test(NAME snow-shot-export-file-encoding-tests
+        COMMAND snow-shot-export-artifact-tests --file-encodings-only -platform offscreen)
+    set_tests_properties(snow-shot-export-file-encoding-tests PROPERTIES LABELS unit TIMEOUT 120)
     add_test(NAME snow-shot-export-compositor-cache-tests
         COMMAND snow-shot-export-artifact-tests --compositor-cache-only -platform offscreen)
     add_test(NAME snow-shot-export-subscriber-lifecycle-tests
@@ -6667,6 +6684,9 @@ if(SNOW_SHOT_BUILD_TESTS)
     endif()
     snow_shot_import_offscreen_platform(snow-shot-mcp-tests)
     add_test(NAME snow-shot-mcp-tests COMMAND snow-shot-mcp-tests -platform offscreen)
+    add_test(NAME snow-shot-mcp-save-formats-tests
+        COMMAND snow-shot-mcp-tests --save-formats-only -platform offscreen)
+    set_tests_properties(snow-shot-mcp-save-formats-tests PROPERTIES LABELS unit TIMEOUT 120)
     add_test(NAME snow-shot-mcp-selection-style-tests
         COMMAND snow-shot-mcp-tests --selection-style-only -platform offscreen)
     set_tests_properties(snow-shot-mcp-selection-style-tests PROPERTIES LABELS "unit" TIMEOUT 30)
@@ -7541,6 +7561,12 @@ if(SNOW_SHOT_BUILD_TESTS)
     endif()
     add_test(NAME snow-shot-screen-recording-shortcut-tests
         COMMAND snow-shot-screen-recording-shortcut-tests)
+    add_test(NAME snow-shot-recording-selection-tool-toggle-tests
+        COMMAND snow-shot-screen-recording-shortcut-tests --selection-tools-only -platform offscreen)
+    set_tests_properties(snow-shot-recording-selection-tool-toggle-tests PROPERTIES
+        LABELS "unit" RUN_SERIAL TRUE TIMEOUT 60
+        ENVIRONMENT "${_SNOW_SHOT_OFFSCREEN_QPA_ENVIRONMENT}"
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>")
     add_test(NAME snow-shot-recording-auto-hide-shortcut-tests
         COMMAND snow-shot-screen-recording-shortcut-tests --auto-hide-shortcuts-only -platform offscreen)
     set_tests_properties(snow-shot-recording-auto-hide-shortcut-tests PROPERTIES
@@ -7687,6 +7713,9 @@ if(SNOW_SHOT_BUILD_TESTS)
         ${SNOW_SHOT_COLLAGE_EXPORT_TEST_SOURCES}
         src/presentation/services/screenshotexportscrollingsource.cpp)
     list(REMOVE_DUPLICATES _scrolling_settings_test_sources)
+    # Image splitting links snow_shot_settings. Reuse its form/theme implementations and MOC
+    # objects instead of compiling a second copy from the overlay fixture's source inventory.
+    list(REMOVE_ITEM _scrolling_settings_test_sources ${SNOW_SHOT_SETTINGS_SOURCES})
     add_executable(snow-shot-scrolling-capture-settings-tests
         tests/scrolling_capture_settings_tests.cpp
         ${_scrolling_settings_test_sources}
@@ -7701,7 +7730,7 @@ if(SNOW_SHOT_BUILD_TESTS)
         src/image src/presentation/services)
     target_link_libraries(snow-shot-scrolling-capture-settings-tests PRIVATE
         snow-shot-scrolling-settings-test-runtime snow_shot_diagnostics snow_shot_storage
-        snow_shot_image_split
+        snow_shot_image_split snow_shot_settings
         snow_shot_window_shortcuts snow_draw_engine_qt_canvas snow_canvas_image snow_stitch_images_c
         ant_design_qt adqt_icon_core ant_design_icons_qt Qt6::Widgets)
     snow_shot_link_macos_window_platform(snow-shot-scrolling-capture-settings-tests)
@@ -9528,6 +9557,9 @@ if(SNOW_SHOT_BUILD_TESTS)
     set_tests_properties(snow-shot-mcp-storage-guard-tests PROPERTIES LABELS "unit" TIMEOUT 30
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>")
     add_test(NAME snow-shot-mcp-document-tests COMMAND snow-shot-mcp-document-tests -platform offscreen)
+    add_test(NAME snow-shot-mcp-document-save-formats-tests
+        COMMAND snow-shot-mcp-document-tests --save-formats-only -platform offscreen)
+    set_tests_properties(snow-shot-mcp-document-save-formats-tests PROPERTIES LABELS unit TIMEOUT 120)
     add_test(NAME snow-shot-mcp-document-selection-style-tests
         COMMAND snow-shot-mcp-document-tests --selection-style-only -platform offscreen)
     set_tests_properties(snow-shot-mcp-document-selection-style-tests PROPERTIES LABELS "unit" TIMEOUT 30)
