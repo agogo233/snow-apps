@@ -7,6 +7,7 @@ param(
     [ValidateRange(1, 256)][int]$Parallelism = 4,
     [switch]$SkipBuild,
     [ValidateSet('standalone', 'store')][string]$DistributionChannel = 'standalone',
+    [switch]$DisableUpdateChecks,
     [switch]$StageOnly,
     [switch]$PrepareOcrRuntimeOnly
 )
@@ -437,6 +438,9 @@ if (-not $SkipBuild) {
     $configureArguments = @(Get-SnowConfigureArguments -Preset $releasePreset `
         -BuildDirectory $buildDirectory)
     $configureArguments += "-DSNOW_SHOT_OCR_ASSET_MANIFEST=$($ocrAssetManifestPath.Replace('\', '/'))"
+    if ($DisableUpdateChecks) {
+        $configureArguments += '-DSNOW_SHOT_DISABLE_UPDATE_CHECKS=ON'
+    }
     & cmake @configureArguments
     if ($LASTEXITCODE -ne 0) {
         throw "Snow Shot release configuration failed."
