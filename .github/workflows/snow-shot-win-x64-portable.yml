@@ -321,9 +321,13 @@ jobs:
           $runtimeArchive = Get-ChildItem -LiteralPath 'build/snow-shot-msvc-release' `
               -Filter 'snow-ocr-runtime-*-windows-x64.zip' | Select-Object -First 1
           if (-not $runtimeArchive) { throw 'The OCR runtime archive was not found.' }
-          $packageArguments = @('-Architecture', 'x64', '-Parallelism', '4',
-              '-OcrRuntimeArchive', $runtimeArchive.FullName, '-DisableUpdateChecks')
-          if (-not $includeMini) { $packageArguments += '-SkipMini' }
+          $packageArguments = @{
+              Architecture = 'x64'
+              Parallelism = 4
+              OcrRuntimeArchive = $runtimeArchive.FullName
+              DisableUpdateChecks = $true
+          }
+          if (-not $includeMini) { $packageArguments['SkipMini'] = $true }
           ./scripts/package-snow-shot.ps1 @packageArguments
 
       - name: Save sccache cache
