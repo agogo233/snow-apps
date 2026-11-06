@@ -286,18 +286,45 @@ jobs:
               -Filter 'snow-ocr-runtime-*-windows-x64.zip' | Select-Object -First 1
           if (-not $runtimeArchive) { throw 'The OCR runtime archive was not found.' }
           ./scripts/package-snow-shot.ps1 -Architecture x64 -Parallelism 4 `
-              -OcrRuntimeArchive $runtimeArchive.FullName
+              -OcrRuntimeArchive $runtimeArchive.FullName -DisableUpdateChecks
+
+      - name: Finalize portable stages
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # The update helper and its installation manifest only serve the
+          # update flow that -DisableUpdateChecks removed at compile time.
+          # share/<product>/licenses is kept for GPL compliance.
+          foreach ($stage in @(
+                  @{ Root = 'artifacts/snow-shot-[0-9]*-portable-stage'; Files = @(
+                          'bin/snow-shot-updater.exe', 'snow-shot-installation.json') },
+                  @{ Root = 'artifacts/snow-shot-mini-*-portable-stage'; Files = @(
+                          'bin/snow-shot-mini-updater.exe', 'snow-shot-mini-installation.json') }
+              )) {
+              $directories = @(Get-ChildItem -Path $stage.Root -Directory)
+              if ($directories.Count -ne 1) {
+                  throw "Expected exactly one stage directory for $($stage.Root), found $($directories.Count)."
+              }
+              foreach ($relative in $stage.Files) {
+                  $path = Join-Path $directories[0].FullName $relative
+                  if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+                      throw "Expected file was not found: $path"
+                  }
+                  Remove-Item -LiteralPath $path -Force
+              }
+              $remaining = @(Get-ChildItem -LiteralPath $directories[0].FullName -Recurse -File).Count
+              Write-Host "Finalized $($directories[0].Name): $remaining files remain."
+          }
 
       - name: Upload the portable archive
         uses: actions/upload-artifact@v4
         with:
           name: snow-shot-win-x64-portable
-          path: build/snow-shot-msvc-release/snow-shot-[0-9]*-windows-x64-portable.zip
+          path: artifacts/snow-shot-[0-9]*-portable-stage
           if-no-files-found: error
 
       - name: Upload the mini portable archive
         uses: actions/upload-artifact@v4
         with:
           name: snow-shot-mini-win-x64-portable
-          path: build/snow-shot-msvc-release/snow-shot-mini-*-windows-x64-portable.zip
+          path: artifacts/snow-shot-mini-*-portable-stage
           if-no-files-found: error
