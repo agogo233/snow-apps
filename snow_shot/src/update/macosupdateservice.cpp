@@ -1,4 +1,5 @@
 #include "snow_shot/app/distribution.h"
+#include "snow_shot/network/proxyconfiguration.h"
 #include "snow_shot/app/edition.h"
 #include "snow_shot/update/updateservice.h"
 
@@ -9,7 +10,6 @@
 #include <QJsonObject>
 #include <QUrlQuery>
 #include <QNetworkAccessManager>
-#include <QNetworkProxyFactory>
 #include <QNetworkReply>
 #include <QPointer>
 #include <QRegularExpression>
@@ -81,11 +81,6 @@ int compareVersions(const Version& left, const Version& right) {
                : (left.prerelease.size() < right.prerelease.size() ? -1 : 1);
 }
 
-class SystemProxyFactory final : public QNetworkProxyFactory {
-    QList<QNetworkProxy> queryProxy(const QNetworkProxyQuery& query) override {
-        return systemProxyForQuery(query);
-    }
-};
 } // namespace
 
 struct UpdateService::Impl {
@@ -486,10 +481,10 @@ void UpdateService::setMode(const QString& value) {
     }
 }
 void UpdateService::setSystemProxy(bool enabled) {
-    if (enabled)
-        m_impl->network.setProxyFactory(new SystemProxyFactory);
-    else
-        m_impl->network.setProxy(QNetworkProxy::NoProxy);
+    setProxyConfiguration(enabled ? QStringLiteral("system") : QStringLiteral("none"), {});
+}
+void UpdateService::setProxyConfiguration(const QString& mode, const QString& address) {
+    network::configureProxy(m_impl->network, mode, address);
 }
 void UpdateService::check(bool manual) {
     if (snow_shot::app::distribution::updateChecksDisabled())
