@@ -11,6 +11,7 @@ on:
         default: false
 
 permissions:
+  actions: write
   contents: read
 
 concurrency:
@@ -26,6 +27,13 @@ jobs:
     runs-on: windows-2025-vs2026
     timeout-minutes: 350
     steps:
+      - name: Delete old workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 7
+          keep_minimum_runs: 3
       - name: Check out sources
         uses: actions/checkout@v4
         with:
@@ -378,6 +386,7 @@ jobs:
       - name: Upload the portable archive
         uses: actions/upload-artifact@v4
         with:
+          retention-days: 7
           name: snow-shot-win-x64-portable
           path: artifacts/portable-stage
           include-hidden-files: true
@@ -387,6 +396,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && inputs.include_mini == true
         uses: actions/upload-artifact@v4
         with:
+          retention-days: 7
           name: snow-shot-mini-win-x64-portable
           path: artifacts/portable-stage-mini
           include-hidden-files: true
