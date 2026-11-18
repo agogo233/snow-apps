@@ -40,6 +40,8 @@ enum class GlobalShortcutAction {
     ScreenshotOcrCopy,
     ToggleWindowUnderCursorAlwaysOnTop,
     ScreenshotScrolling,
+    EditSelectedImages,
+    ToggleGlobalMouse,
 };
 
 [[nodiscard]] constexpr bool controlsGlobalShortcutGates(GlobalShortcutAction action) {

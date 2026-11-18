@@ -4,6 +4,10 @@
     <context>
         <name>ScreenshotQuickTextAnnotationToolbar</name>
         <message>
+            <source>Copy text</source>
+            <translation>复制文本</translation>
+        </message>
+        <message>
             <source>Highlight</source>
             <translation>高亮</translation>
         </message>
@@ -125,6 +129,10 @@
         <message>
             <source>Angle unit</source>
             <translation>角度单位</translation>
+        </message>
+        <message>
+            <source>Animate the recording area as it follows the cursor.</source>
+            <translation>录制区域跟随鼠标指针时平滑移动。</translation>
         </message>
         <message>
             <source>Animated recording formats do not contain audio</source>
@@ -459,6 +467,10 @@
             <translation>小数位数</translation>
         </message>
         <message>
+            <source>Dedicated Models</source>
+            <translation>专用模型</translation>
+        </message>
+        <message>
             <source>Dedicated model</source>
             <translation>专用模型</translation>
         </message>
@@ -529,6 +541,14 @@
         <message>
             <source>Distribute vertically</source>
             <translation>垂直分布</translation>
+        </message>
+        <message>
+            <source>Document Recognition Model</source>
+            <translation>文档识别模型</translation>
+        </message>
+        <message>
+            <source>Document recognition</source>
+            <translation>文档识别</translation>
         </message>
         <message>
             <source>Dotted arrow line</source>
@@ -679,6 +699,10 @@
             <translation>滤镜类型</translation>
         </message>
         <message>
+            <source>Follow mouse</source>
+            <translation>跟随鼠标</translation>
+        </message>
+        <message>
             <source>Font family</source>
             <translation>字体</translation>
         </message>
@@ -764,11 +788,11 @@
         </message>
         <message>
             <source>Image editing</source>
-            <translation>图片编辑</translation>
+            <translation>图像编辑</translation>
         </message>
         <message>
             <source>Image splitting</source>
-            <translation>图片分割</translation>
+            <translation>图像分割</translation>
         </message>
         <message>
             <source>Integers</source>
@@ -979,6 +1003,10 @@
             <translation>不透明度</translation>
         </message>
         <message>
+            <source>Open document file</source>
+            <translation>打开文档文件</translation>
+        </message>
+        <message>
             <source>Open recording folder</source>
             <translation>打开录制文件夹</translation>
         </message>
@@ -1135,6 +1163,10 @@
             <translation>重做</translation>
         </message>
         <message>
+            <source>Reduce jitter</source>
+            <translation>减少抖动</translation>
+        </message>
+        <message>
             <source>Regular brush</source>
             <translation>普通画笔</translation>
         </message>
@@ -1283,6 +1315,10 @@
             <translation>智能擦除</translation>
         </message>
         <message>
+            <source>Smooth movement</source>
+            <translation>平滑移动</translation>
+        </message>
+        <message>
             <source>Snow Shot visual understanding</source>
             <translation>Snow Shot 视觉理解</translation>
         </message>
@@ -1393,6 +1429,10 @@
         <message>
             <source>Start arrowhead triangle outline</source>
             <translation>起始箭头 空心三角形</translation>
+        </message>
+        <message>
+            <source>Start moving the recording area when the cursor enters the outer twelfth of its width or height.</source>
+            <translation>鼠标指针进入距边缘十二分之一宽度或高度的范围时，开始移动录制区域。</translation>
         </message>
         <message>
             <source>Start recording</source>

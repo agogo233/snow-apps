@@ -3,6 +3,9 @@
 
 #include "snow_shot/presentation/screenshotclouduploadservice.h"
 #include "snow_shot/app/editionfeatures.h"
+#if SNOW_SHOT_ENABLE_LATEX_RECOGNITION
+#include "snow_shot/presentation/screenshotclipboardformularenderer.h"
+#endif
 
 #include "snow_draw_engine_qt/snow_canvas_runtime.h"
 #include "snow_shot/presentation/screenshotclipboardcontent.h"
@@ -267,7 +270,10 @@ class ScreenshotPinnedWindow final : public QWidget {
     bool prewarm(QScreen* screen = nullptr);
     QRect currentNativeGeometry() const;
     [[nodiscard]] snow_shot::storage::PinnedWindowRecord persistenceSnapshot() const;
-    void requestRenderedImageSnapshot(std::function<void(ScreenshotPinnedImageSnapshot)> ready);
+    void requestRenderedImageSnapshot(
+        std::function<void(ScreenshotPinnedImageSnapshot)> ready,
+        ScreenshotPinnedRenderMode mode = ScreenshotPinnedRenderMode::WindowAppearance);
+    [[nodiscard]] std::shared_ptr<ScreenshotExportArtifact> fileSaveArtifact();
     void checkpointStorage();
     [[nodiscard]] ScreenshotPinnedImageSnapshot stitchingSnapshot();
     [[nodiscard]] ScreenshotPinnedImageSnapshot splittingSnapshot();
@@ -280,6 +286,9 @@ class ScreenshotPinnedWindow final : public QWidget {
         return m_groupId;
     }
     [[nodiscard]] QJsonObject automationState() const;
+#if SNOW_SHOT_ENABLE_DOCUMENT_RECOGNITION
+    [[nodiscard]] ScreenshotDocumentCopyRequest automationDocumentCopyRequest() const;
+#endif
     [[nodiscard]] bool blocksMemoryTrimming() const;
     [[nodiscard]] bool automationUpdate(const QJsonObject& properties, QString* error);
     [[nodiscard]] bool automationAction(const QString& action);
@@ -289,6 +298,9 @@ class ScreenshotPinnedWindow final : public QWidget {
     [[nodiscard]] std::shared_ptr<ScreenshotExportArtifact>
     automationArtifact(bool original = false, bool viewport = false);
     [[nodiscard]] std::unique_ptr<QMimeData> automationClipboardMimeData(bool original) const;
+    bool
+    prepareAutomationSmartClipboard(bool original,
+                                    std::function<void(std::unique_ptr<QMimeData>)> completion);
     [[nodiscard]] std::optional<ScreenshotRecognitionFileSnapshot> automationFileSnapshot() const;
     [[nodiscard]] ScreenshotRecognitionResults recognitionSnapshot() const;
     [[nodiscard]] static ScreenshotRecognitionResults
@@ -435,9 +447,10 @@ class ScreenshotPinnedWindow final : public QWidget {
     void installLiveFrame(QImage original);
     [[nodiscard]] std::shared_ptr<ScreenshotExportArtifact>
     liveViewportArtifact(bool applyWindowOpacity = true);
-    [[nodiscard]] ScreenshotExportSource liveExportSource(bool applyWindowOpacity = true);
+    enum class ViewportExportMode { Complete, RecognitionBackground, SourceResolution };
+    [[nodiscard]] ScreenshotExportSource liveExportSource(ViewportExportMode mode, QSize& size);
     void requestLiveSnapshot(std::function<void(QImage, QString)> completion,
-                             bool applyWindowOpacity = true);
+                             ViewportExportMode mode);
     void convertLiveToImage();
     void splitLiveImage();
     void editLiveImage();
@@ -452,7 +465,6 @@ class ScreenshotPinnedWindow final : public QWidget {
     void applyRuntimeBorderColor();
     void updateShowMainInterfaceAction();
     void retranslateUi();
-    [[nodiscard]] ScreenshotPinnedImageSnapshot processedImageSnapshot(bool finishEditing);
     void refreshContextMenu();
     void configureAnimationPlayback(int speedPercent = 100, bool playing = true);
     void updateAnimationSuspension();
@@ -533,7 +545,8 @@ class ScreenshotPinnedWindow final : public QWidget {
     void loadImageFile();
     void loadClipboardContent();
     void requestContentReplacement(QStringList paths,
-                                   std::optional<ScreenshotClipboardContentSnapshot> snapshot = {});
+                                   std::optional<ScreenshotClipboardContentSnapshot> snapshot = {},
+                                   bool clipboardFormula = false);
     bool replaceContent(ScreenshotClipboardContent content, bool* rejectedByLock = nullptr);
     void finishContentReplacement(ScreenshotClipboardContent content, quint64 generation);
     void finishQueuedContentReplacement();
@@ -550,8 +563,6 @@ class ScreenshotPinnedWindow final : public QWidget {
     [[nodiscard]] static bool batchSavePending();
     void uploadToCloud();
     void cancelCloudUpload();
-    [[nodiscard]] std::shared_ptr<ScreenshotExportArtifact> fileSaveArtifact();
-    enum class ViewportExportMode { Complete, RecognitionBackground };
     [[nodiscard]] ScreenshotPinnedImageSnapshot
     renderedImageSnapshot(ViewportExportMode mode = ViewportExportMode::Complete);
     [[nodiscard]] std::shared_ptr<ScreenshotExportArtifact>
@@ -739,6 +750,9 @@ class ScreenshotPinnedWindow final : public QWidget {
     bool m_airDropPending = false;
     ScreenshotExportJobHandle m_materializationJob;
     ScreenshotExportJobHandle m_contentReplacementJob;
+#if SNOW_SHOT_ENABLE_LATEX_RECOGNITION
+    ScreenshotClipboardFormulaRenderer m_clipboardFormulaRenderer;
+#endif
     quint64 m_contentReplacementGeneration = 0;
     ScreenshotExportJobHandle m_fileSaveJob;
     ScreenshotExportJobHandle m_recognitionSaveJob;
@@ -749,6 +763,9 @@ class ScreenshotPinnedWindow final : public QWidget {
     QPointer<ScreenshotCloudUploadJob> m_cloudUploadJob;
     bool m_cloudUploadPreparing = false;
     ScreenshotClipboardCommitHandle m_clipboardCommit;
+#if SNOW_SHOT_ENABLE_DOCUMENT_RECOGNITION
+    ScreenshotExportJobHandle m_documentCopyJob;
+#endif
     std::vector<MaterializationCallback> m_materializationCallbacks;
     PresentationCompletion m_presentationCompletion;
     ScreenshotImageLoader m_imageLoader;

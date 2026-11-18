@@ -25,6 +25,13 @@ share/snow-shot/licenses/third-party/
 every collected package and source license file. The bundle includes the Ant Design
 Icons MIT notice from `ant_design_qt/THIRD_PARTY_NOTICES.md`.
 
+Windows installers use the public-domain LZMA SDK 26.05 C decoder for their
+executable-filtered payload archives. The native extraction helper is temporary
+installer machinery and is not installed with the application. The SDK's pinned
+`7zr.exe` encoder runs only on the build host. `licenses/lzma-sdk/` preserves the
+original notice and source archive SHA-256; Windows notice collection includes
+both files in the consolidated license document.
+
 The Qt 6.12 LTS toolchain is pinned by `scripts/qt-toolchain.json`. The Qt notice
 bundle preserves the source archive version and digest, license texts, and
 upstream licensing metadata for Qt Base, Qt SVG, Qt Tools, and Qt Translations.
@@ -56,9 +63,9 @@ frameworks through the existing windows-rs and objc2 bindings (MIT OR Apache-2.0
 OR Zlib). Camera-track storage uses the existing FFmpeg libraries. Their resolved
 licenses are included in the generated dependency notice bundle.
 
-The native macOS microphone exception boundary is compiled using the Rust `cc`
-build helper (MIT OR Apache-2.0). Its resolved build dependency notices are
-included in the generated Rust dependency notice bundle.
+The native Windows Graphics Capture and macOS microphone exception boundaries
+are compiled using the Rust `cc` build helper (MIT OR Apache-2.0). Its resolved
+build dependency notices are included in the generated Rust dependency notice bundle.
 
 Parallel screenshot stitching uses Rayon (Apache-2.0 OR MIT). Its license
 texts and resolved dependencies are included in the generated Rust dependency
@@ -388,3 +395,8 @@ The packaging license collector includes each package's original license and not
 | windows-link-0.2.1 | MIT OR Apache-2.0 |
 | windows-sys-0.61.2 | MIT OR Apache-2.0 |
 | zmij-1.0.23 | MIT |
+
+macOS application updates use Sparkle 2.10.1 (MIT), including its native installer
+and bundled components. `licenses/sparkle/` preserves the upstream aggregate
+license and provenance. Both Full and Mini include that notice in their bundles;
+Windows continues to use its existing updater and does not include Sparkle.

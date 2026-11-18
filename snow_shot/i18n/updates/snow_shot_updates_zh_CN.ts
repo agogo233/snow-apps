@@ -340,6 +340,10 @@
             <translation>发布必须包含全部五个 Windows 软件包</translation>
         </message>
         <message>
+            <source>The selected files exceed the update restart limit</source>
+            <translation>所选文件超出更新重启的传递上限</translation>
+        </message>
+        <message>
             <source>The server changed an already published release</source>
             <translation>服务器修改了已发布的版本</translation>
         </message>
@@ -542,8 +546,12 @@
     <context>
         <name>UpdateService</name>
         <message>
-            <source>Could not check for updates. Please try again</source>
-            <translation>无法检查更新，请重试</translation>
+            <source>Automatic updates are not configured for this copy</source>
+            <translation>此副本尚未配置自动更新</translation>
+        </message>
+        <message>
+            <source>Could not update the application. Please try again</source>
+            <translation>无法更新应用程序。请重试</translation>
         </message>
     </context>
 </TS>

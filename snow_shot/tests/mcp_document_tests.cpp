@@ -1,5 +1,6 @@
 #include "snow_shot/app/mcp/mcpdocumentservice.h"
 #include "image_orientation_fixture.h"
+#include "legacy_thumbnail_test_support.h"
 #include "snow_shot/app/mcp/mcpjobregistry.h"
 #include "snow_shot/app/mcp/mcpapplicationservice.h"
 #include "snow_shot/presentation/settings/settingsruntimesession.h"
@@ -47,6 +48,7 @@
 
 using namespace snow_shot::app::mcp;
 void runMcpApplicationTests();
+void runMcpLoginItemImportTests();
 void runMcpApplicationReplayTests();
 void runMcpTranslationTests();
 namespace {
@@ -3314,6 +3316,8 @@ void documents(const QString& directory) {
 } // namespace
 int main(int argc, char** argv) {
     QApplication application(argc, argv);
+    thumbnail_tests::CacheEnvironment cacheEnvironment;
+    require(cacheEnvironment.isValid(), "MCP tests require isolated thumbnail caches");
     QTemporaryDir temporary;
     require(temporary.isValid(), "isolated document test directory");
     const QString executable = QDir(temporary.path()).filePath(QStringLiteral("bin"));
@@ -3393,6 +3397,11 @@ int main(int argc, char** argv) {
     }
     if (application.arguments().contains(QStringLiteral("--translation-only"))) {
         runMcpTranslationTests();
+        snow_shot::storage::ApplicationStorage::instance().shutdown();
+        return 0;
+    }
+    if (application.arguments().contains(QStringLiteral("--login-item-import-only"))) {
+        runMcpLoginItemImportTests();
         snow_shot::storage::ApplicationStorage::instance().shutdown();
         return 0;
     }

@@ -8,6 +8,23 @@ impl Editor {
         canvas_point: Point<f64>,
         modifiers: Modifiers,
     ) -> PrimaryPointerIntent {
+        if modifiers.shift && self.state.active_tool == ActiveTool::SerialNumber {
+            // Transform handles keep their Shift modifiers; only the badge body starts an arrow.
+            if let CanvasHit::SelectionHandle(target) =
+                self.resolve_canvas_hit(document, policy, canvas_point, true)
+                && target != SelectionHitTarget::Move
+            {
+                return PrimaryPointerIntent::BeginSelectionInteraction { target };
+            }
+            if let CanvasHit::EligibleElement(id, ElementKind::SerialNumber) =
+                self.resolve_canvas_hit(document, policy, canvas_point, false)
+                && document
+                    .element(id)
+                    .is_ok_and(|element| !element.meta.locked)
+            {
+                return PrimaryPointerIntent::BeginSerialNumberArrow { id };
+            }
+        }
         if modifiers.shift
             && let CanvasHit::SelectionHandle(target @ SelectionHitTarget::CornerRadius(_)) =
                 self.resolve_canvas_hit(document, policy, canvas_point, true)
@@ -68,6 +85,15 @@ impl Editor {
                     id,
                     ElementKind::Distance | ElementKind::Angle | ElementKind::Bracket,
                 ) => PrimaryPointerIntent::BeginArrowElementInteraction { id },
+                CanvasHit::EligibleElement(_, ElementKind::Line)
+                    if self.state.active_tool == ActiveTool::Line
+                        && !modifiers.alt
+                        && self
+                            .nearby_line_endpoint(document, canvas_point, None)
+                            .is_some() =>
+                {
+                    PrimaryPointerIntent::EmptyCanvas
+                }
                 CanvasHit::EligibleElement(id, ElementKind::Line) => {
                     PrimaryPointerIntent::BeginArrowElementInteraction { id }
                 }
@@ -123,6 +149,34 @@ impl Editor {
         }
     }
 
+    pub(crate) fn update_hover_feedback_for_primary_pointer_intent(
+        &mut self,
+        document: &DocumentModel,
+        policy: ToolPolicy,
+        intent: PrimaryPointerIntent,
+        canvas_point: Point<f64>,
+    ) -> CursorStyle {
+        let (cursor, hovered_element) =
+            self.hover_feedback_for_primary_pointer_intent(document, policy, intent);
+        self.set_hovered_element(hovered_element);
+        let hovered_handle = match intent {
+            PrimaryPointerIntent::BeginSelectedArrowInteraction {
+                target: ArrowHitTarget::AngleArc,
+            } => self
+                .selected_single_arrow_snapshot(document)
+                .and_then(|(_, arrow)| snow_draw_engine_document::angle_arc_control_point(&arrow))
+                .filter(|center| {
+                    point_distance(*center, canvas_point)
+                        <= selection_handle_hit_size(self.camera().zoom) / 2.0 * 1.11
+                })
+                .map(|_| ArrowHitTarget::AngleArc),
+            PrimaryPointerIntent::BeginSelectedArrowInteraction { target } => Some(target),
+            _ => None,
+        };
+        self.set_hovered_arrow_handle(hovered_handle);
+        cursor
+    }
+
     pub(crate) fn hover_feedback_for_primary_pointer_intent(
         &self,
         document: &DocumentModel,
@@ -130,6 +184,10 @@ impl Editor {
         intent: PrimaryPointerIntent,
     ) -> (CursorStyle, Option<ElementId>) {
         match intent {
+            PrimaryPointerIntent::BeginSerialNumberArrow { id } => (
+                CursorStyle::Crosshair,
+                (!self.state.selection.contains(id)).then_some(id),
+            ),
             PrimaryPointerIntent::BeginMagnifierLens { id } => (
                 CursorStyle::Move,
                 (!self.state.selection.contains(id)).then_some(id),

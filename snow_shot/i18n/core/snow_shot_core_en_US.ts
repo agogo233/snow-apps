@@ -102,14 +102,6 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <translation>Discussion and support · group no. %1</translation>
         </message>
         <message>
-            <source>Download from GitHub</source>
-            <translation>Download from GitHub</translation>
-        </message>
-        <message>
-            <source>Download from Gitee</source>
-            <translation>Download from Gitee</translation>
-        </message>
-        <message>
             <source>Download update</source>
             <translation>Download update</translation>
         </message>
@@ -182,8 +174,8 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <translation>Privacy policy</translation>
         </message>
         <message>
-            <source>QQ group 3</source>
-            <translation>QQ group 3</translation>
+            <source>QQ group 4</source>
+            <translation>QQ group 4</translation>
         </message>
         <message>
             <source>Ready to install %1</source>
@@ -234,6 +226,14 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <translation>Unavailable</translation>
         </message>
         <message>
+            <source>Update %1 is ready. It will install after you quit and be available on your next launch</source>
+            <translation>Update %1 is ready. It will install after you quit and be available on your next launch</translation>
+        </message>
+        <message>
+            <source>Update %1 will install when you quit</source>
+            <translation>Update %1 will install when you quit</translation>
+        </message>
+        <message>
             <source>Update available: %1</source>
             <translation>Update available: %1</translation>
         </message>
@@ -250,12 +250,20 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <translation>Updates are managed by Microsoft Store</translation>
         </message>
         <message>
+            <source>User agreement</source>
+            <translation>User agreement</translation>
+        </message>
+        <message>
             <source>Verifying update…</source>
             <translation>Verifying update…</translation>
         </message>
         <message>
             <source>View the source and improve it together</source>
             <translation>View the source and improve it together</translation>
+        </message>
+        <message>
+            <source>View update details</source>
+            <translation>View update details</translation>
         </message>
         <message>
             <source>You are up to date</source>
@@ -319,6 +327,10 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <source>Scale: %1%</source>
             <translation>Scale: %1%</translation>
         </message>
+        <message>
+            <source>Thinking…</source>
+            <translation>Thinking…</translation>
+        </message>
     </context>
     <context>
         <name>ConfirmationSkipButton</name>
@@ -329,6 +341,10 @@ so every moment on screen can be expressed clearly and shared easily</translatio
     </context>
     <context>
         <name>DiagnosticsService</name>
+        <message>
+            <source>A diagnostics file could not be read</source>
+            <translation>A diagnostics file could not be read</translation>
+        </message>
         <message>
             <source>A log file could not be read</source>
             <translation>A log file could not be read</translation>
@@ -366,6 +382,14 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <translation>The local crash database could not be initialized</translation>
         </message>
         <message>
+            <source>The log archive could not be saved</source>
+            <translation>The log archive could not be saved</translation>
+        </message>
+        <message>
+            <source>The log archive directory could not be created</source>
+            <translation>The log archive directory could not be created</translation>
+        </message>
+        <message>
             <source>The log directory is not writable</source>
             <translation>The log directory is not writable</translation>
         </message>
@@ -384,6 +408,10 @@ so every moment on screen can be expressed clearly and shared easily</translatio
         <message>
             <source>The preferred log directory is unavailable; a fallback is in use</source>
             <translation>The preferred log directory is unavailable; a fallback is in use</translation>
+        </message>
+        <message>
+            <source>There is not enough space for a log archive</source>
+            <translation>There is not enough space for a log archive</translation>
         </message>
         <message>
             <source>There is not enough space for a log snapshot</source>
@@ -420,6 +448,14 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <translation>Customize toolbar</translation>
         </message>
         <message>
+            <source>Edit selected images</source>
+            <translation>Edit selected images</translation>
+        </message>
+        <message>
+            <source>Full-screen canvas</source>
+            <translation>Full-screen canvas</translation>
+        </message>
+        <message>
             <source>Hide during screenshots</source>
             <translation>Hide during screenshots</translation>
         </message>
@@ -448,8 +484,20 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <translation>Screenshot</translation>
         </message>
         <message>
+            <source>Screenshot history</source>
+            <translation>Screenshot history</translation>
+        </message>
+        <message>
             <source>Show toolbar</source>
             <translation>Show toolbar</translation>
+        </message>
+        <message>
+            <source>Split selected images</source>
+            <translation>Split selected images</translation>
+        </message>
+        <message>
+            <source>Stitch selected images</source>
+            <translation>Stitch selected images</translation>
         </message>
         <message>
             <source>Toolbar mode</source>
@@ -648,6 +696,14 @@ so every moment on screen can be expressed clearly and shared easily</translatio
     <context>
         <name>SnowShotApiClient</name>
         <message>
+            <source>Document recognition request timed out</source>
+            <translation>Document recognition request timed out</translation>
+        </message>
+        <message>
+            <source>Document recognition response is too large</source>
+            <translation>Document recognition response is too large</translation>
+        </message>
+        <message>
             <source>Image conversion failed</source>
             <translation>Image conversion failed</translation>
         </message>
@@ -682,6 +738,10 @@ so every moment on screen can be expressed clearly and shared easily</translatio
         <message>
             <source>Invalid LaTeX recognition response</source>
             <translation>Invalid LaTeX recognition response</translation>
+        </message>
+        <message>
+            <source>Invalid document recognition response</source>
+            <translation>Invalid document recognition response</translation>
         </message>
         <message>
             <source>Invalid model stream response</source>
@@ -720,6 +780,18 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <translation>No translation services are available</translation>
         </message>
         <message>
+            <source>Paid calls are paused because your account has an outstanding balance. Settle the balance in Account to continue</source>
+            <translation>Paid calls are paused because your account has an outstanding balance. Settle the balance in Account to continue</translation>
+        </message>
+        <message>
+            <source>Sign in to your Snow Shot account to use Expert Model</source>
+            <translation>Sign in to your Snow Shot account to use Expert Model</translation>
+        </message>
+        <message>
+            <source>Sign in to your Snow Shot account to use this service</source>
+            <translation>Sign in to your Snow Shot account to use this service</translation>
+        </message>
+        <message>
             <source>Table recognition failed</source>
             <translation>Table recognition failed</translation>
         </message>
@@ -734,6 +806,10 @@ so every moment on screen can be expressed clearly and shared easily</translatio
         <message>
             <source>Table recognition returned no table</source>
             <translation>Table recognition returned no table</translation>
+        </message>
+        <message>
+            <source>The document image could not be encoded</source>
+            <translation>The document image could not be encoded</translation>
         </message>
         <message>
             <source>The image could not be prepared for conversion</source>
@@ -752,6 +828,10 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <translation>The image is too large to recognize. Select a smaller area</translation>
         </message>
         <message>
+            <source>The image is too large. Select a smaller area.</source>
+            <translation>The image is too large. Select a smaller area.</translation>
+        </message>
+        <message>
             <source>The model response is too large</source>
             <translation>The model response is too large</translation>
         </message>
@@ -768,12 +848,20 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <translation>The model service changed. Retry to load its models</translation>
         </message>
         <message>
+            <source>The service has reached its usage limit. Try again later</source>
+            <translation>The service has reached its usage limit. Try again later</translation>
+        </message>
+        <message>
             <source>The text is too large to translate</source>
             <translation>The text is too large to translate</translation>
         </message>
         <message>
             <source>The translation response is too large</source>
             <translation>The translation response is too large</translation>
+        </message>
+        <message>
+            <source>This request requires payment. Check your balance in Account</source>
+            <translation>This request requires payment. Check your balance in Account</translation>
         </message>
         <message>
             <source>This service does not support the selected language combination</source>
@@ -798,6 +886,26 @@ so every moment on screen can be expressed clearly and shared easily</translatio
         <message>
             <source>Translation stream ended unexpectedly</source>
             <translation>Translation stream ended unexpectedly</translation>
+        </message>
+        <message>
+            <source>Your Snow Shot session is no longer valid. Sign in again</source>
+            <translation>Your Snow Shot session is no longer valid. Sign in again</translation>
+        </message>
+        <message>
+            <source>Your available credits cannot cover this request. Purchase credits in Account</source>
+            <translation>Your available credits cannot cover this request. Purchase credits in Account</translation>
+        </message>
+        <message>
+            <source>Your credits are reserved by other calls that are still running. Wait for them to finish and try again</source>
+            <translation>Your credits are reserved by other calls that are still running. Wait for them to finish and try again</translation>
+        </message>
+        <message>
+            <source>Your credits cannot cover this Expert Model request. Purchase credits from Account to continue</source>
+            <translation>Your credits cannot cover this Expert Model request. Purchase credits from Account to continue</translation>
+        </message>
+        <message>
+            <source>Your daily free allowance is exhausted. Try again after it resets</source>
+            <translation>Your daily free allowance is exhausted. Try again after it resets</translation>
         </message>
     </context>
     <context>
@@ -845,20 +953,12 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <translation>%1 %2 is available. Open About for update options</translation>
         </message>
         <message>
-            <source>%1 will close and restart to install the update. Continue?</source>
-            <translation>%1 will close and restart to install the update. Continue?</translation>
-        </message>
-        <message>
             <source>An update is ready. Open About to restart and update %1</source>
             <translation>An update is ready. Open About to restart and update %1</translation>
         </message>
         <message>
             <source>An update is ready. Open About to restart and update Snow Shot</source>
             <translation>An update is ready. Open About to restart and update Snow Shot</translation>
-        </message>
-        <message>
-            <source>Cancel</source>
-            <translation>Cancel</translation>
         </message>
         <message>
             <source>Could not open the selected file: %1</source>
@@ -869,10 +969,6 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <translation>Could not pin selected files to screen</translation>
         </message>
         <message>
-            <source>Feature unavailable</source>
-            <translation>Feature unavailable</translation>
-        </message>
-        <message>
             <source>Finish capturing, recording, exporting, recognizing text, or updating before changing storage</source>
             <translation>Finish capturing, recording, exporting, recognizing text, or updating before changing storage</translation>
         </message>
@@ -881,20 +977,12 @@ so every moment on screen can be expressed clearly and shared easily</translatio
             <translation>Finish capturing, recording, or exporting before updating</translation>
         </message>
         <message>
-            <source>Restart and update</source>
-            <translation>Restart and update</translation>
-        </message>
-        <message>
             <source>Restart failed</source>
             <translation>Restart failed</translation>
         </message>
         <message>
             <source>Snow Shot %1 is available. Open About for update options</source>
             <translation>Snow Shot %1 is available. Open About for update options</translation>
-        </message>
-        <message>
-            <source>Snow Shot will close and restart to install the update. Continue?</source>
-            <translation>Snow Shot will close and restart to install the update. Continue?</translation>
         </message>
         <message>
             <source>The selected file path is invalid</source>

@@ -306,7 +306,8 @@ void pendingTextAndRecognition() {
     const auto expectedRecognition = rendered(recognition);
     recognition.palette()->ocrRequested();
     auto* session = recognition.recognition();
-    require(session && session->active(), "cached OCR is displayed before pinning");
+    require(session && session->originalImageVisible(),
+            "cached OCR is displayed over the base image before pinning");
     session->setTextDraft(QStringLiteral("Unsaved recognition draft"));
     recognition.palette()->pinRequested();
     awaitCondition([&] { return sink.images.size() == 2; }, "pin renders with recognition visible");
@@ -339,6 +340,7 @@ void sourceRecordsRemainIndependent() {
     display.sourceCanvasRect = draft.canvasBounds;
     display.image = original.image;
     draft.displays.append(std::move(display));
+    draft.resultImage = original.image;
     const auto published = repository->publish(std::move(draft)).get();
     require(published.storage.success, "publish the history source for pinning");
     const auto revision = repository->recordsSnapshot().revision;
@@ -429,6 +431,7 @@ void failureAndLifetime() {
 
     ImageEditingWindow cancelled(sink.services());
     cancelled.present(source());
+    addAnnotation(cancelled);
     cancelled.palette()->pinRequested();
     cancelled.shutdown();
     drainEvents();

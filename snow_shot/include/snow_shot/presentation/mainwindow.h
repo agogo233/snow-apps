@@ -46,9 +46,11 @@ class MainWindow : public QMainWindow {
     void showAppPermissions(const QString& permissionId = {});
     void showScreenshotHistory();
     void showPinToScreenManagement();
+    void openTranslationPage();
     void showTranslation(const QString& text);
 
   signals:
+    void aboutToShowAndActivate();
     void screenshotRequested();
     void quickActionRequested(snow_shot::presentation::GlobalShortcutAction action);
     void

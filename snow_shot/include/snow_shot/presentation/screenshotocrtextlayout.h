@@ -15,17 +15,31 @@ class ScreenshotOcrTextLayout final {
   public:
     enum class PaintMode { TextAndSelection, SelectionOnly, TextOnly };
 
-    struct StreamingLayout {
+    // Available space at the source font size. Shared by previews and completed translations.
+    struct TranslationLayout {
         qreal width;
+        qreal height;
+        qreal firstLineIndent;
+        qreal lineAdvance;
+        qreal minimumSingleLineScale;
         std::optional<ScreenshotOcrSourceTextMetrics> source;
-        bool operator==(const StreamingLayout&) const = default;
+        bool operator==(const TranslationLayout&) const = default;
+    };
+
+    struct SmartMergeLayout {
+        QSizeF box;
+        qreal inkCap;
+        Qt::Alignment horizontalAlignment;
+        bool operator==(const SmartMergeLayout&) const = default;
     };
 
     void configure(const QString& text, const QFont& font, const QColor& textColor,
                    const ScreenshotOcrTextRange& selection, ScreenshotOcrTextDirection direction,
                    qreal targetAspectRatio, bool paragraph, const QVector<QRectF>& sourceRows = {},
                    std::optional<qreal> fontSizeCapRatio = {},
-                   std::optional<StreamingLayout> streaming = {});
+                   std::optional<TranslationLayout> translation = {},
+                   const QVector<QColor>& sourceRowColors = {},
+                   std::optional<SmartMergeLayout> smartMerge = {});
     void setSelection(const ScreenshotOcrTextRange& selection);
     [[nodiscard]] int cursorPositionAt(const QPointF& itemPosition) const;
     [[nodiscard]] QVector<ScreenshotTextAnnotationFragment>
@@ -45,6 +59,9 @@ class ScreenshotOcrTextLayout final {
         return m_font.pixelSize() * m_sourceRowScale;
     }
     [[nodiscard]] ScreenshotOcrSourceTextMetrics sourceTextMetrics() const;
+    [[nodiscard]] qreal smartMergeScale() const {
+        return m_smartMergeScale;
+    }
     [[nodiscard]] QRectF glyphRasterBounds() const {
         return m_glyphRasterBounds;
     }
@@ -61,6 +78,7 @@ class ScreenshotOcrTextLayout final {
         QRectF bounds;
     };
     bool fitSourceRows(qreal aspectRatio);
+    void fitSmartMerge(const SmartMergeLayout& geometry);
     void updateGlyphRasterCacheability();
 
     struct VerticalGlyph {
@@ -69,7 +87,13 @@ class ScreenshotOcrTextLayout final {
         bool rotated = false;
         std::unique_ptr<QTextLayout> layout;
         QRectF inkBounds;
+        QRectF cell{};
     };
+    struct VerticalColumn {
+        int start;
+        int length;
+    };
+    [[nodiscard]] QRectF verticalCell(std::size_t index) const;
 
     QString m_text;
     QFont m_font;
@@ -81,12 +105,17 @@ class ScreenshotOcrTextLayout final {
     std::vector<VerticalGlyph> m_verticalGlyphs;
     std::vector<FittedRow> m_fittedRows;
     QVector<QRectF> m_sourceRows;
+    QVector<QColor> m_sourceRowColors;
     QVector<int> m_graphemeBoundaries;
     qreal m_verticalCellAdvance = 0.0;
     qreal m_targetAspectRatio = 0.0;
     qreal m_sourceRowScale = 1.0;
     std::optional<qreal> m_fontSizeCapRatio;
-    std::optional<StreamingLayout> m_streaming;
+    std::optional<TranslationLayout> m_translation;
+    std::optional<SmartMergeLayout> m_smartMerge;
+    qreal m_smartMergeScale = 0;
+    QVector<QRectF> m_reflowRows;
+    QVector<VerticalColumn> m_verticalColumns;
     bool m_paragraph = false;
     bool m_glyphRasterCacheable = true;
     QPointF m_layoutOrigin;
@@ -100,10 +129,10 @@ configureScreenshotOcrTextLayout(ScreenshotOcrTextLayout& layout, const Screensh
                                  const QColor& textColor, const ScreenshotOcrTextRange& selection,
                                  QTransform* textToOutput, qreal* fittedFontPixelSize = nullptr);
 
-// Capture source font sizes and spacing once for translation fitting and streaming.
-void setScreenshotOcrTranslationFontCaps(QVector<ScreenshotOcrLine>& translation,
-                                         const QVector<ScreenshotOcrLine>& source,
-                                         const QVector<QVector<int>>& sourceIndices,
-                                         const QFont& font);
+// Capture Original font metrics or prepare a Smart Merge overlay for geometry-based fitting.
+void prepareScreenshotOcrTranslationLayout(QVector<ScreenshotOcrLine>& translation,
+                                           const QVector<ScreenshotOcrLine>& source,
+                                           const QVector<QVector<int>>& sourceIndices,
+                                           const QFont& font, bool smartMerge = false);
 
 #endif

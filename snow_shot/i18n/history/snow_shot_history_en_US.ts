@@ -153,6 +153,14 @@
             <translation>%1 px</translation>
         </message>
         <message>
+            <source>Allow Snow Shot to access Finder in System Settings &gt; Privacy &amp; Security &gt; Automation, then try again</source>
+            <translation>Allow Snow Shot to access Finder in System Settings &gt; Privacy &amp; Security &gt; Automation, then try again</translation>
+        </message>
+        <message>
+            <source>Could not read the selected image files. Please try again</source>
+            <translation>Could not read the selected image files. Please try again</translation>
+        </message>
+        <message>
             <source>No available output filename was found</source>
             <translation>No available output filename was found</translation>
         </message>
@@ -161,8 +169,20 @@
             <translation>The editing content could not be prepared for export</translation>
         </message>
         <message>
+            <source>The file manager is unavailable. Open it and try again</source>
+            <translation>The file manager is unavailable. Open it and try again</translation>
+        </message>
+        <message>
+            <source>The file manager took too long to return the selected files. Please try again</source>
+            <translation>The file manager took too long to return the selected files. Please try again</translation>
+        </message>
+        <message>
             <source>The image could not be loaded</source>
             <translation>The image could not be loaded</translation>
+        </message>
+        <message>
+            <source>The image is too large or there is not enough memory to load it</source>
+            <translation>The image is too large or there is not enough memory to load it</translation>
         </message>
         <message>
             <source>The save directory is not available</source>
@@ -531,6 +551,10 @@
             <translation>Enter a positive paper dimension</translation>
         </message>
         <message>
+            <source>Enter an image quality from 0% to 100%</source>
+            <translation>Enter an image quality from 0% to 100%</translation>
+        </message>
+        <message>
             <source>Image stitching requires too much temporary memory. Try fewer images or smaller image sizes</source>
             <translation>Image stitching requires too much temporary memory. Try fewer images or smaller image sizes</translation>
         </message>
@@ -694,6 +718,10 @@
             <translation>Image %1: %2</translation>
         </message>
         <message>
+            <source>Image preview was cancelled</source>
+            <translation>Image preview was cancelled</translation>
+        </message>
+        <message>
             <source>Image sizing</source>
             <translation>Image sizing</translation>
         </message>
@@ -770,6 +798,10 @@
             <translation>Pixels</translation>
         </message>
         <message>
+            <source>Preview original image</source>
+            <translation>Preview original image</translation>
+        </message>
+        <message>
             <source>Purple</source>
             <translation>Purple</translation>
         </message>
@@ -808,6 +840,10 @@
         <message>
             <source>Static image</source>
             <translation>Static image</translation>
+        </message>
+        <message>
+            <source>The original image is unavailable</source>
+            <translation>The original image is unavailable</translation>
         </message>
         <message>
             <source>Total: %1 images</source>
@@ -1130,8 +1166,16 @@
             <translation>Delete image</translation>
         </message>
         <message>
-            <source>Drag an image to move or swap it; drag its selection handles to scale proportionally around its center</source>
-            <translation>Drag an image to move or swap it; drag its selection handles to scale proportionally around its center</translation>
+            <source>Drag an image to move or swap it; drag its selection handles to scale proportionally around its center. Drag with the middle mouse button to pan; scroll to zoom</source>
+            <translation>Drag an image to move or swap it; drag its selection handles to scale proportionally around its center. Drag with the middle mouse button to pan; scroll to zoom</translation>
+        </message>
+        <message>
+            <source>Drag image files here, or choose add images</source>
+            <translation>Drag image files here, or choose add images</translation>
+        </message>
+        <message>
+            <source>Fit to canvas</source>
+            <translation>Fit to canvas</translation>
         </message>
         <message>
             <source>Flip horizontally</source>
@@ -1273,12 +1317,20 @@
             <translation>Discard this stitching session?</translation>
         </message>
         <message>
+            <source>Dropped image</source>
+            <translation>Dropped image</translation>
+        </message>
+        <message>
             <source>Export could not be started. Try again</source>
             <translation>Export could not be started. Try again</translation>
         </message>
         <message>
             <source>Exporting PDF page %1 of %2: %3%</source>
             <translation>Exporting PDF page %1 of %2: %3%</translation>
+        </message>
+        <message>
+            <source>Image editing</source>
+            <translation>Image editing</translation>
         </message>
         <message>
             <source>Image loading could not be started. Try again</source>
@@ -2128,10 +2180,6 @@ Files:
             <translation>Pause</translation>
         </message>
         <message>
-            <source>Pin to screen management</source>
-            <translation>Pin to screen management</translation>
-        </message>
-        <message>
             <source>Pinned content</source>
             <translation>Pinned content</translation>
         </message>
@@ -2310,6 +2358,10 @@ Files:
             <source>Uploading to cloud... %1%</source>
             <translation>Uploading to cloud... %1%</translation>
         </message>
+        <message>
+            <source>Window management</source>
+            <translation>Window management</translation>
+        </message>
     </context>
     <context>
         <name>WindowGroupSwitcher</name>
@@ -2341,6 +2393,14 @@ Files:
     <context>
         <name>snow_shot::presentation::ImageEditingWindow</name>
         <message>
+            <source>Add images</source>
+            <translation>Add images</translation>
+        </message>
+        <message>
+            <source>Add images to start image editing</source>
+            <translation>Add images to start image editing</translation>
+        </message>
+        <message>
             <source>Configure cloud upload before uploading an image</source>
             <translation>Configure cloud upload before uploading an image</translation>
         </message>
@@ -2355,6 +2415,14 @@ Files:
         <message>
             <source>Discard changes?</source>
             <translation>Discard changes?</translation>
+        </message>
+        <message>
+            <source>Drag image files here, or choose add images</source>
+            <translation>Drag image files here, or choose add images</translation>
+        </message>
+        <message>
+            <source>Drop images to edit</source>
+            <translation>Drop images to edit</translation>
         </message>
         <message>
             <source>Export completed</source>
@@ -2377,12 +2445,20 @@ Files:
             <translation>Image editing</translation>
         </message>
         <message>
+            <source>Images</source>
+            <translation>Images</translation>
+        </message>
+        <message>
             <source>Loading image…</source>
             <translation>Loading image…</translation>
         </message>
         <message>
             <source>No recognition result is available to export</source>
             <translation>No recognition result is available to export</translation>
+        </message>
+        <message>
+            <source>Open each image in its own window</source>
+            <translation>Open each image in its own window</translation>
         </message>
         <message>
             <source>Printing is unavailable</source>
@@ -2399,6 +2475,10 @@ Files:
         <message>
             <source>The image could not be loaded</source>
             <translation>The image could not be loaded</translation>
+        </message>
+        <message>
+            <source>The image is too large or there is not enough memory to load it</source>
+            <translation>The image is too large or there is not enough memory to load it</translation>
         </message>
         <message>
             <source>This editing window has unsaved changes</source>

@@ -13,12 +13,14 @@
 #include "widgets/input_number.h"
 #include "widgets/segmented.h"
 #include "widgets/select.h"
+#include "widgets/slider.h"
 
 #include <QApplication>
 #include <QColorSpace>
 #include <QElapsedTimer>
 #include <QEvent>
 #include <QEventLoop>
+#include <QLabel>
 #include <QLinearGradient>
 #include <QPainter>
 #include <QPixmap>
@@ -26,6 +28,7 @@
 #include <QThread>
 #include <QTranslator>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <iostream>
@@ -40,6 +43,7 @@ using adqt::widgets::AdFormItem;
 using adqt::widgets::AdLineEdit;
 using adqt::widgets::AdSegmented;
 using adqt::widgets::AdSelect;
+using adqt::widgets::AdSlider;
 namespace storage = snow_shot::storage;
 
 namespace {
@@ -92,6 +96,12 @@ void refresh() {
     QApplication::processEvents();
 }
 
+void settleLayout() {
+    // Nested form hosts post layout requests to their parents on successive event turns.
+    for (int pass = 0; pass < 4; ++pass)
+        refresh();
+}
+
 bool uniformMargins(const ImageStitchingPdfSettings& settings, qreal value) {
     const auto equal = [value](qreal margin) {
         return margin == value || (std::isnan(margin) && std::isnan(value));
@@ -109,6 +119,7 @@ void validSettingsUpdateAndValidation() {
     auto* paper = control<AdSelect>(widget, "collagePdfPaperSize");
     auto* orientation = control<AdSegmented>(widget, "collagePdfOrientation");
     auto* exportMode = control<AdSegmented>(widget, "collagePdfExportMode");
+    auto* quality = control<AdSlider>(widget, "collagePdfImageQuality");
     auto* width = control<AdLineEdit>(widget, "collagePdfCustomWidth");
     auto* height = control<AdLineEdit>(widget, "collagePdfCustomHeight");
     auto* margin = control<AdLineEdit>(widget, "collagePdfMargin");
@@ -129,6 +140,10 @@ void validSettingsUpdateAndValidation() {
                 uniformMargins(document.pdfSettings(), 10),
             "A4 with one ten-millimeter margin is selected by default and custom dimensions stay "
             "hidden");
+    require(quality->isVisible() && quality->value() == 100 && quality->minimum() == 0 &&
+                quality->maximum() == 100 && quality->singleStep() == 1 && !quality->tracking() &&
+                document.pdfSettings().imageQuality == 100,
+            "the PDF quality slider defaults to lossless and matches the save dialog range");
     QStringList fields;
     QObject::connect(&widget, &ImageStitchingPdfSettingsWidget::settingsEdited, &widget,
                      [&](const QString& field) { fields.append(field); });
@@ -147,11 +162,13 @@ void validSettingsUpdateAndValidation() {
     QObject::disconnect(changed);
     require(marginChanges == 1, "one margin edit emits one document change");
     exportMode->setCurrentValue(static_cast<int>(ImageStitchingPdfExportMode::PerPage));
+    quality->setValue(0);
     const auto settings = document.pdfSettings();
     require(custom->isVisible() && settings.customWidthMm == 123.75 &&
                 settings.customHeightMm == 234.5 && uniformMargins(settings, 4.125) &&
                 settings.orientation == ImageStitchingPdfOrientation::Landscape &&
                 settings.exportMode == ImageStitchingPdfExportMode::PerPage &&
+                settings.imageQuality == 0 && quality->value() == 0 &&
                 document.lastValidPdfSettings() == settings,
             "valid decimal fields promptly update custom paper and one margin on every side");
     const auto layout = calculateImageStitchingPdfPageLayout({12, 8}, settings);
@@ -169,7 +186,8 @@ void validSettingsUpdateAndValidation() {
                 !fields.contains(QStringLiteral("margin_left_mm")) &&
                 !fields.contains(QStringLiteral("margin_right_mm")) &&
                 fields.contains(QStringLiteral("orientation")) &&
-                fields.contains(QStringLiteral("export_mode")),
+                fields.contains(QStringLiteral("export_mode")) &&
+                fields.count(QStringLiteral("image_quality")) == 1,
             "a uniform margin emits one persistence alias while other fields remain independent");
 
     width->setText(QStringLiteral("0"));
@@ -279,6 +297,58 @@ void imageSizeSelection() {
             "returning to a paper size restores the saved orientation and margin controls");
 }
 
+void customPaperSpacing() {
+    ImageStitchingDocument document;
+    auto settings = document.pdfSettings();
+    settings.paperSize = ImageStitchingPdfPaperSize::Custom;
+    document.setPdfSettings(settings);
+    ImageStitchingPdfSettingsWidget widget(&document);
+    widget.resize(360, widget.sizeHint().height());
+    widget.show();
+    refresh();
+    auto* width = control<AdLineEdit>(widget, "collagePdfCustomWidth");
+    auto* height = control<AdLineEdit>(widget, "collagePdfCustomHeight");
+    auto* margin = control<AdLineEdit>(widget, "collagePdfMargin");
+    auto* exportMode = control<AdSegmented>(widget, "collagePdfExportMode");
+    const auto top = [&widget](QWidget* controlWidget) {
+        return controlWidget->mapTo(&widget, QPoint{}).y();
+    };
+    const auto checkSpacing = [&] {
+        settleLayout();
+        const int dimensionBottom =
+            std::max(top(width) + width->height(), top(height) + height->height());
+        const int customGap = top(fieldFor(margin)) - dimensionBottom;
+        const int standardGap = top(fieldFor(exportMode)) - top(margin) - margin->height();
+        if (customGap <= 0 || customGap != standardGap)
+            std::cerr << "custom gap=" << customGap << ", standard gap=" << standardGap
+                      << ", method=" << static_cast<int>(document.pdfSettings().stitchingMethod)
+                      << '\n';
+        require(customGap > 0 && customGap == standardGap,
+                "custom paper dimensions have the same bottom spacing as other form rows");
+    };
+    for (const auto method : {ImageStitchingPdfStitchingMethod::PageBased,
+                              ImageStitchingPdfStitchingMethod::TemplateBased}) {
+        settings.stitchingMethod = method;
+        document.setPdfSettings(settings);
+        checkSpacing();
+        const int validHeight = widget.sizeHint().height();
+        width->setText(QStringLiteral("0"));
+        settleLayout();
+        auto* feedback =
+            fieldFor(width)->findChild<QLabel*>(QStringLiteral("ad-form-item-explain"));
+        require(feedback && feedback->isVisible() && !feedback->text().isEmpty() &&
+                    top(fieldFor(margin)) >= top(feedback) + feedback->height(),
+                "custom dimension errors stay visible without overlapping page margin");
+        width->setText(QStringLiteral("210"));
+        checkSpacing();
+        require(widget.sizeHint().height() == validHeight,
+                "correcting custom dimensions removes the validation space");
+        QEvent languageChange(QEvent::LanguageChange);
+        QCoreApplication::sendEvent(&widget, &languageChange);
+        checkSpacing();
+    }
+}
+
 void templateSettingsAndImageSize() {
     ImageStitchingDocument document;
     document.append(image(), QStringLiteral("original"));
@@ -286,7 +356,7 @@ void templateSettingsAndImageSize() {
     widget.resize(360, 1000);
     widget.show();
     refresh();
-    auto* method = control<AdSelect>(widget, "collagePdfStitchingMethod");
+    auto* method = control<AdSegmented>(widget, "collagePdfStitchingMethod");
     auto* templates = control<QWidget>(widget, "collagePdfTemplates");
     auto* margin = control<AdLineEdit>(widget, "collagePdfMargin");
     auto* spacing = control<AdLineEdit>(widget, "collagePdfImageSpacing");
@@ -303,7 +373,8 @@ void templateSettingsAndImageSize() {
     method->setCurrentValue(static_cast<int>(ImageStitchingPdfStitchingMethod::TemplateBased));
     control<AdButton>(widget, "collagePdfTemplateFiveImages")->click();
     spacing->setText(QStringLiteral("6.125"));
-    refresh();
+    settleLayout();
+    // Centering within the shared row can round differently for the two fields.
     require(
         templates->isVisible() && templates->findChildren<AdButton*>().size() == 9 &&
             spacing->isVisible() &&
@@ -312,7 +383,8 @@ void templateSettingsAndImageSize() {
             !control<AdButton>(widget, "collagePdfTemplateTwoImages")->isChecked() &&
             document.pdfSettings().imageSpacingMm == 6.125 &&
             spacing->mapTo(&widget, QPoint{}).x() > margin->mapTo(&widget, QPoint{}).x() &&
-            spacing->mapTo(&widget, QPoint{}).y() == margin->mapTo(&widget, QPoint{}).y() &&
+            std::abs(spacing->mapTo(&widget, QPoint{}).y() -
+                     margin->mapTo(&widget, QPoint{}).y()) <= 1 &&
             edits.contains(QStringLiteral("stitching_method")) &&
             edits.contains(QStringLiteral("template_type")) &&
             edits.contains(QStringLiteral("image_spacing_mm")),
@@ -554,6 +626,7 @@ void fieldEditsMergeAndRetranslate() {
             "one window's latest uniform margin merges without overwriting another window's paper "
             "dimensions");
     auto* margin = control<AdLineEdit>(firstEditor, "collagePdfMargin");
+    auto* quality = control<AdSlider>(firstEditor, "collagePdfImageQuality");
     margin->setText(QStringLiteral("-2.25"));
     const auto persisted = store.readPdf();
     for (const auto* locale : {"en_US", "zh_CN", "zh_TW"}) {
@@ -565,6 +638,16 @@ void fieldEditsMergeAndRetranslate() {
         refresh();
         const auto label =
             QCoreApplication::translate("ImageStitchingPdfSettingsWidget", "Page margin");
+        const auto qualityLabel =
+            QCoreApplication::translate("ScreenshotSaveAsFileDialog", "Quality");
+        const auto marks = quality->marks();
+        require(quality->accessibleName() == qualityLabel &&
+                    fieldFor(quality)->label() == qualityLabel && marks.size() == 2 &&
+                    marks.value(0).label ==
+                        QCoreApplication::translate("ScreenshotSaveAsFileDialog", "0%") &&
+                    marks.value(100).label ==
+                        QCoreApplication::translate("ScreenshotSaveAsFileDialog", "Lossless"),
+                "language changes restore the same quality label and marks as the save dialog");
         require(margin->text() == QStringLiteral("-2.25") &&
                     margin->status() == AdLineEdit::Status::Error &&
                     margin->accessibleName() == label && fieldFor(margin)->label() == label &&
@@ -588,8 +671,8 @@ void templateSettingsPersistIndependently() {
     const auto defaults = store.readPdf();
     require(defaults.stitchingMethod == ImageStitchingPdfStitchingMethod::PageBased &&
                 defaults.templateType == ImageStitchingPdfTemplateType::TwoImages &&
-                defaults.imageSpacingMm == 5,
-            "missing preferences use page-based stitching, two images and five millimeters");
+                defaults.imageSpacingMm == 5 && defaults.imageQuality == 100,
+            "missing preferences retain the original layout and lossless image quality defaults");
     auto first = defaults;
     first.stitchingMethod = ImageStitchingPdfStitchingMethod::TemplateBased;
     first.templateType = ImageStitchingPdfTemplateType::SevenImages;
@@ -620,6 +703,10 @@ void templateSettingsPersistIndependently() {
                 store.readPdf() == restored,
             "invalid spacing and template preferences are rejected without replacing remembered "
             "choices");
+    const auto qualityKey = QStringLiteral("collage/pdf_image_quality");
+    require(!configuration.setValue(qualityKey, -1) && !configuration.setValue(qualityKey, 101) &&
+                !configuration.setValue(qualityKey, 75.5) && store.readPdf() == restored,
+            "stored image quality must be an integer between 0 and 100");
 }
 
 void renderPdfEditor(const QString& path) {
@@ -702,6 +789,7 @@ int main(int argc, char** argv) {
         }
         validSettingsUpdateAndValidation();
         imageSizeSelection();
+        customPaperSpacing();
         templateSettingsAndImageSize();
         invalidSelectionsHaveFieldErrors();
         rawInvalidDraftSurvivesRefresh();

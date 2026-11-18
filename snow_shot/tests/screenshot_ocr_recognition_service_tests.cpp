@@ -21,6 +21,7 @@
 #include <QSemaphore>
 #include <QSet>
 #include <QUrl>
+#include <QScopeGuard>
 
 #include <algorithm>
 #include <cmath>
@@ -370,8 +371,8 @@ void diskBackedEngineCompletesThroughTheQtWorker(bool managedRuntime = false) {
                        : options.processPath;
 #else
         managedRuntime ? QDir(QCoreApplication::applicationDirPath())
-                             .filePath(QStringLiteral("assets/ocr/runtimes/1.2.1/windows-x64/"
-                                                      "snow-ocr-process-1.2.1-windows-x64.exe"))
+                             .filePath(QStringLiteral("assets/ocr/runtimes/1.3.0/windows-x64/"
+                                                      "snow-ocr-process-1.3.0-windows-x64.exe"))
                        : options.processPath;
 #endif
     if (managedRuntime) {
@@ -438,8 +439,18 @@ std::shared_ptr<ScreenshotOcrPresentation> filterPresentation(const QRect& selec
     return presentation;
 }
 
-void renderOnlyWorkRunsOnTheOcrWorkerWithoutAnEngine(qreal scale = 1) {
-    ScreenshotOcrRecognitionService service;
+void renderOnlyWorkRunsOnTheOcrWorkerWithoutAnEngine(qreal scale = 1, bool fill = false) {
+    QSemaphore entered;
+    QSemaphore resume;
+    std::atomic_bool ranOffGui = false;
+    const auto gui = QThread::currentThread();
+    ScreenshotOcrRecognitionService::Options options;
+    options.beforeLocalRender = [&] {
+        ranOffGui.store(QThread::currentThread() != gui);
+        entered.release();
+        resume.acquire();
+    };
+    ScreenshotOcrRecognitionService service(options);
     QObject receiver;
     QImage image(96, 64, QImage::Format_RGBA8888);
     image.fill(QColor(20, 80, 220));
@@ -449,6 +460,16 @@ void renderOnlyWorkRunsOnTheOcrWorkerWithoutAnEngine(qreal scale = 1) {
     request.canvasRect = canvasRect;
     request.presentation = filterPresentation(canvasRect.toAlignedRect());
     request.backgroundColor = QColor(30, 40, 50);
+    const auto display = request.presentation;
+    if (fill) {
+        QImage source(image.size(), QImage::Format_RGBA8888);
+        source.fill(QColor(170, 30, 40));
+        request.colorSource = ScreenshotOcrColorSource{
+            source, canvasRect, std::make_shared<ScreenshotOcrPresentation>(*display)};
+        request.prepareVisualColors = true;
+        request.renderFilteredImage = true;
+        request.backgroundFill = true;
+    }
 
     ScreenshotOcrRecognitionResult output;
     bool completed = false;
@@ -458,11 +479,20 @@ void renderOnlyWorkRunsOnTheOcrWorkerWithoutAnEngine(qreal scale = 1) {
             completed = true;
         });
     require(token != 0, "a valid render-only OCR request should be accepted");
+    const bool workerStarted = entered.tryAcquire(1, kRecognitionTimeoutMs);
+    resume.release();
+    require(workerStarted && ranOffGui.load() && !completed,
+            "the worker renders independently of its GUI completion");
     require(waitUntil([&]() { return completed; }, kRecognitionTimeoutMs),
             "render-only OCR work should complete on the worker");
-    require(output.error.isEmpty() && output.presentation == nullptr &&
+    require(output.error.isEmpty() && static_cast<bool>(output.presentation) == fill &&
                 !output.filteredImage.isNull(),
-            "render-only OCR work should return only its transient filtered image");
+            "render-only work returns colors when requested alongside the filtered image");
+    if (fill)
+        require(output.presentation->lines[0].backgroundFillColor == QColor(170, 30, 40) &&
+                    output.filteredImage.pixelColor(output.filteredImage.rect().center()) ==
+                        QColor(170, 30, 40),
+                "a transformed render uses fill colors sampled from the original source");
     require(output.filteredImageCanvasRect.isValid() && !output.filteredImageCanvasRect.isEmpty() &&
                 canvasRect.contains(output.filteredImageCanvasRect),
             "render-only OCR work should report the canvas rect covered by its filtered crop");
@@ -1124,7 +1154,7 @@ void actualOcrCrashAfterInference() {
     const auto bytes = dump.readAll();
     dump.close();
     require(bytes.contains(diagnostics.status().sessionId.toUtf8()) &&
-                bytes.contains("ocr.operation_started") && bytes.contains("1.2.1"),
+                bytes.contains("ocr.operation_started") && bytes.contains("1.3.0"),
             "actual OCR dump retains parent session, operation and runtime version");
     require(diagnostics.flush(), "actual OCR final diagnostics flush");
     diagnostics.shutdown();
@@ -1151,6 +1181,105 @@ void storageRelocationPreservesServiceIdentity() {
     service.resumeStorage(root.filePath(QStringLiteral("new")));
     QCoreApplication::processEvents();
     require(!service.storageBusy(), "new OCR service is ready for requests");
+}
+
+void storageRelocationAppliesLatestConfiguration() {
+    QTemporaryDir fixture;
+    require(fixture.isValid(), "paused OCR configuration fixture is isolated");
+    const auto marker = fixture.filePath(QStringLiteral("submitted"));
+    qputenv("SNOW_TEST_OCR_LIFECYCLE_CHILD", "1");
+    qputenv("SNOW_TEST_OCR_LIFECYCLE_COMPLETE", "1");
+    qputenv("SNOW_TEST_OCR_LIFECYCLE_MARKER", marker.toUtf8());
+    const auto clearEnvironment = qScopeGuard([] {
+        qunsetenv("SNOW_TEST_OCR_LIFECYCLE_CHILD");
+        qunsetenv("SNOW_TEST_OCR_LIFECYCLE_COMPLETE");
+        qunsetenv("SNOW_TEST_OCR_LIFECYCLE_MARKER");
+    });
+    const auto events = [&] {
+        QFile file(marker + QStringLiteral(".events"));
+        return file.open(QIODevice::ReadOnly) ? file.readAll().split('\n') : QList<QByteArray>();
+    };
+    const auto preparations = [&] {
+        QList<QByteArray> result;
+        for (const auto& event : events()) {
+            if (event.startsWith("prepare "))
+                result.append(event);
+        }
+        return result;
+    };
+    ScreenshotOcrRecognitionService::Options options;
+    options.cacheRoot = fixture.filePath(QStringLiteral("old"));
+    options.processPath = QCoreApplication::applicationFilePath();
+    options.detectorModelPath = options.processPath;
+    options.recognizerModelPath = options.processPath;
+    options.dictionaryPath = options.processPath;
+    options.modelType = ScreenshotOcrModelType::ExtraSmall;
+    options.detectorResizePolicy = ScreenshotOcrDetectorResizePolicy::Min;
+    options.textDetectionProcessing = ScreenshotOcrTextDetectionProcessing::SpeedFirst;
+    options.hardwareAcceleration = true;
+    ScreenshotOcrRecognitionService service(options);
+    require(service.runtimeConfiguration().modelType == options.modelType &&
+                service.runtimeConfiguration().detectorResizePolicy ==
+                    options.detectorResizePolicy &&
+                service.runtimeConfiguration().textDetectionProcessing ==
+                    options.textDetectionProcessing &&
+                service.runtimeConfiguration().hardwareAcceleration,
+            "initial options establish the desired runtime configuration");
+    service.suspendStorage();
+    auto drain = std::async(std::launch::async, [&] { service.drainStorage(); });
+    drain.get();
+    ScreenshotOcrRuntimeConfiguration configuration;
+    configuration.residentProcess = true;
+    configuration.modelHotStart = true;
+    service.setRuntimeConfiguration(configuration);
+    service.setModelType(ScreenshotOcrModelType::Medium);
+    service.setDetectorResizePolicy(ScreenshotOcrDetectorResizePolicy::Min);
+    service.setTextDetectionProcessing(ScreenshotOcrTextDetectionProcessing::SpeedFirst);
+    service.setHardwareAcceleration(true);
+    configuration.modelType = ScreenshotOcrModelType::Medium;
+    configuration.detectorResizePolicy = ScreenshotOcrDetectorResizePolicy::Min;
+    configuration.textDetectionProcessing = ScreenshotOcrTextDetectionProcessing::SpeedFirst;
+    configuration.hardwareAcceleration = true;
+    require(service.runtimeConfiguration() == configuration,
+            "all individual setters compose with whole configuration changes while paused");
+    QObject receiver;
+    const auto image = whiteImage(8);
+    require(service.recognize({image, QRectF(0, 0, 8, 8)}, &receiver,
+                              [](ScreenshotOcrRecognitionResult) {
+                                  require(false, "paused OCR must not deliver new recognition");
+                              }) == 0,
+            "configuration does not reopen paused OCR request admission");
+    QCoreApplication::processEvents();
+    require(events().isEmpty() && service.processId() == 0,
+            "configuration while paused cannot create a process or warm session");
+    service.resumeStorage(fixture.filePath(QStringLiteral("new")));
+    require(waitUntil([&] { return !preparations().isEmpty(); }, 5000) &&
+                preparations().back().startsWith("prepare 010101") && service.processId() != 0,
+            "resumed resident hot start uses current detector, processing and acceleration flags");
+    require(service.runtimeConfiguration() == configuration,
+            "resumed resources retain the selected model and latest runtime policy");
+
+    service.suspendStorage();
+    auto secondDrain = std::async(std::launch::async, [&] { service.drainStorage(); });
+    secondDrain.get();
+    configuration = {};
+    configuration.modelType = ScreenshotOcrModelType::ExtraSmall;
+    service.setRuntimeConfiguration(configuration);
+    const auto previousEvents = events();
+    // A failed relocation resumes against the original root; policy still comes from now.
+    service.resumeStorage(options.cacheRoot);
+    QCoreApplication::processEvents();
+    require(service.processId() == 0 && events() == previousEvents,
+            "disabling residency while paused prevents obsolete background startup on rollback");
+    int completions = 0;
+    require(service.recognize({image, QRectF(0, 0, 8, 8)}, &receiver,
+                              [&](ScreenshotOcrRecognitionResult result) {
+                                  require(result.error.isEmpty(), "resumed OCR request succeeds");
+                                  ++completions;
+                              }) != 0 &&
+                waitUntil([&] { return completions == 1 && service.processId() == 0; }, 5000) &&
+                preparations().back().startsWith("prepare 000000"),
+            "whole configuration update reaches next worker and releases nonresident process");
 }
 
 #ifdef Q_OS_WIN
@@ -1224,10 +1353,84 @@ void downloadedRuntimeRecognizesText(const QString& archive) {
 }
 #endif
 
+void paragraphOperationDoesNotRequireRecognitionModels() {
+    QTemporaryDir fixture;
+    require(fixture.isValid(), "paragraph fixture directory");
+    {
+        ScreenshotOcrRecognitionService::Options options;
+        options.offlineRoot = fixture.path();
+        options.cacheRoot = fixture.path();
+        ScreenshotOcrRecognitionService service(options);
+        QObject receiver;
+        bool completed = false;
+        const auto cancelled =
+            service.groupParagraphs({}, &receiver, [&](auto) { completed = true; });
+        require(cancelled != 0, "empty grouping is admitted without assets");
+        service.cancel(cancelled);
+        QCoreApplication::processEvents();
+        require(!completed && service.processId() == 0, "trivial grouping can be cancelled");
+        service.groupParagraphs({}, &receiver, [&](auto result) {
+            require(result.groups.isEmpty() && result.error.isEmpty(), "empty grouping result");
+            completed = true;
+        });
+        require(waitUntil([&] { return completed; }, 5000) && service.processId() == 0,
+                "trivial grouping needs no worker or model download");
+    }
+    for (bool fail : {false, true}) {
+        ScreenshotOcrRecognitionService::Options options;
+        options.processPath = qEnvironmentVariable("SNOW_TEST_OCR_WORKER");
+        options.paragraphModelPath = qEnvironmentVariable("SNOW_TEST_PARAGRAPH_MODEL");
+        if (fail) {
+            options.paragraphModelPath = fixture.filePath(QStringLiteral("invalid.onnx"));
+            QFile invalid(options.paragraphModelPath);
+            require(invalid.open(QIODevice::WriteOnly), "invalid paragraph fixture");
+            invalid.write("invalid model");
+        }
+        ScreenshotOcrRecognitionService service(options);
+        require(!service.modelFilesReady() && service.processId() == 0,
+                "paragraph assets neither satisfy OCR readiness nor start inference eagerly");
+        QObject receiver;
+        QImage image(160, 100, QImage::Format_ARGB32);
+        image.fill(Qt::white);
+        ScreenshotOcrParagraphRequest request{image,
+                                              QRectF(-50, -30, 80, 50),
+                                              {{{-45, -25}, {20, -25}, {20, -20}, {-45, -20}},
+                                               {{-45, -17}, {20, -17}, {20, -12}, {-45, -12}},
+                                               {{-45, 5}, {20, 5}, {20, 10}, {-45, 10}}}};
+        bool completed = false;
+        require(service.groupParagraphs(
+                    request, &receiver,
+                    [&](auto result) {
+                        if (result.error.isEmpty() == fail)
+                            qWarning() << "paragraph result:" << result.error;
+                        require(result.error.isEmpty() != fail,
+                                "model failure belongs only to the paragraph operation");
+                        if (!fail) {
+                            QVector<int> indices;
+                            for (const auto& group : result.groups)
+                                indices += group;
+                            std::sort(indices.begin(), indices.end());
+                            require(indices == QVector<int>{0, 1, 2},
+                                    "real model returns a complete index partition");
+                        }
+                        completed = true;
+                    }) != 0,
+                "independent paragraph operation is admitted");
+        require(waitUntil([&] { return completed; }, 30000),
+                "independent paragraph operation completes");
+        require(!service.modelFilesReady(), "grouping does not prepare recognition models");
+    }
+}
+
 void ocrProxyConfigurationTests();
 
 int main(int argc, char** argv) {
     QCoreApplication application(argc, argv);
+    if (application.arguments().contains(QStringLiteral("--paragraph-only"))) {
+        paragraphOperationDoesNotRequireRecognitionModels();
+        return 0;
+    }
+
     if (application.arguments().contains(QStringLiteral("--proxy-configuration-only"))) {
         ocrProxyConfigurationTests();
         return 0;
@@ -1242,6 +1445,7 @@ int main(int argc, char** argv) {
 #endif
     if (application.arguments().contains(QStringLiteral("--storage-relocation-only"))) {
         storageRelocationPreservesServiceIdentity();
+        storageRelocationAppliesLatestConfiguration();
         return 0;
     }
     if (qEnvironmentVariableIsSet("SNOW_TEST_OCR_LIFECYCLE_CHILD"))
@@ -1290,6 +1494,7 @@ int main(int argc, char** argv) {
     modelInitializationFailureIsReportedOnRequestsAndRetries();
     renderOnlyWorkRunsOnTheOcrWorkerWithoutAnEngine();
     renderOnlyWorkRunsOnTheOcrWorkerWithoutAnEngine(2);
+    renderOnlyWorkRunsOnTheOcrWorkerWithoutAnEngine(1, true);
     destructionStaysBoundedWhileRendersAreInFlight();
     diskBackedEngineCompletesThroughTheQtWorker();
     residentRuntimeRebuildsWarmSessions();

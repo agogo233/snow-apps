@@ -76,17 +76,26 @@ void trayClickActionSettingsRespectPlatformSupport() {
                                    QStringLiteral("show_main_window"),
                                    QStringLiteral("screenshot_copy"),
                                    QStringLiteral("screenshot_fixed"),
+                                   QStringLiteral("pin_clipboard_content"),
+                                   QStringLiteral("restore_last_closed_windows"),
+                                   QStringLiteral("hide_show_all_windows"),
                                    QStringLiteral("open_capture_history"),
                                    QStringLiteral("open_pin_to_screen_management"),
                                    QStringLiteral("open_function_settings")};
     require(leftSelect.options.size() == actionValues.size() &&
                 leftSelect.options.constFirst().label.translated() == QStringLiteral("None"),
-            "tray left-click action must expose eight options with None first");
+            "tray left-click action must expose all options with None first");
     require(leftSelect.options.at(5).label.translated() ==
-                    QStringLiteral("Open screenshot history") &&
+                    QStringLiteral("Pin clipboard content to screen") &&
                 leftSelect.options.at(6).label.translated() ==
+                    QStringLiteral("Restore last closed window") &&
+                leftSelect.options.at(7).label.translated() ==
+                    QStringLiteral("Hide/show all windows") &&
+                leftSelect.options.at(8).label.translated() ==
+                    QStringLiteral("Open screenshot history") &&
+                leftSelect.options.at(9).label.translated() ==
                     QStringLiteral("Open pin to screen management"),
-            "tray selectors must name the history and pin management destinations");
+            "tray selectors must label the pin actions, history, and pin management");
     for (qsizetype index = 0; index < actionValues.size(); ++index) {
         require(leftSelect.options.at(index).value == actionValues.at(index),
                 "tray left-click actions must retain their ordered values");
@@ -356,7 +365,32 @@ void translationConfidenceCatalog() {
     QCoreApplication::removeTranslator(&translator);
 }
 
+void editablePinCatalog() {
+    const auto& registry = settings::builtInSettingsRegistry();
+    const auto* section = registry.catalog().section(QStringLiteral("screenshots"),
+                                                     QStringLiteral("screenshot-settings"));
+    const auto* field = registry.fieldForSwitch(
+        settings::SettingsSwitchBinding::ScreenshotKeepAnnotationsEditableAfterPinningToScreen);
+    require(
+        section && field &&
+            field->configurationKey ==
+                QStringLiteral("screenshot/keep_annotations_editable_after_pinning_to_screen") &&
+            !field->defaultValue.toBool() &&
+            field->reset == settings::SettingsSectionReset::ScreenshotSettings &&
+            field->definition->title.translated() ==
+                QStringLiteral("Keep annotations editable after pinning to screen"),
+        "editable pin setting exposes the default-off persisted interaction switch");
+    const auto copy =
+        std::find_if(section->items.cbegin(), section->items.cend(), [](const auto& item) {
+            return item.id == QStringLiteral("screenshot.copy-after-pinning-to-screen");
+        });
+    require(copy != section->items.cend() && std::next(copy) != section->items.cend() &&
+                std::next(copy)->id == field->definition->id,
+            "editable pin setting immediately follows copy after pinning");
+}
+
 void screenshotInteractionCatalog() {
+    editablePinCatalog();
     const auto& catalog = settings::builtInSettingsRegistry().catalog();
     require(catalog.validationErrors().isEmpty(), "screenshot interaction settings must validate");
     const auto* functionPage = catalog.page(QStringLiteral("screenshots"));
@@ -528,9 +562,19 @@ void builtInCatalogIsCompleteAndValid() {
                         return first.id ==
                                    QStringLiteral("interface.screenshot.show-guides-by-default") &&
                                second.id ==
-                                   QStringLiteral("interface.screenshot.cursor-guide-line-color");
+                                   QStringLiteral("interface.screenshot.adaptive-guide-colors");
                     }) != screenshotInterface->items.cend(),
-            "show guides by default must appear immediately above cursor guide color");
+            "adaptive guide colors must appear immediately below show guides by default");
+    const auto* adaptiveGuideColors =
+        catalog.item({QStringLiteral("screenshots"), QStringLiteral("interface-screenshot"),
+                      QStringLiteral("interface.screenshot.adaptive-guide-colors")});
+    require(
+        adaptiveGuideColors != nullptr &&
+            adaptiveGuideColors->configurationKey ==
+                QStringLiteral("screenshot_ui/adaptive_guide_colors") &&
+            std::get<settings::SettingsSwitchDefinition>(adaptiveGuideColors->payload).binding ==
+                settings::SettingsSwitchBinding::AdaptiveGuideColors,
+        "the adaptive guide colors switch must use its own setting");
     const auto* editSelectionToolbar =
         catalog.item({QStringLiteral("screenshots"), QStringLiteral("interface-screenshot"),
                       QStringLiteral("interface.screenshot.show-edit-selection-toolbar")});
@@ -563,9 +607,9 @@ void builtInCatalogIsCompleteAndValid() {
             }) != screenshotInterface->items.cend(),
         "selection center guide color must appear immediately below cursor guide color");
 #ifdef Q_OS_MACOS
-    require(catalog.pages().size() == 17, "macOS includes App Permissions");
+    require(catalog.pages().size() == 18, "macOS includes Account and App Permissions");
 #else
-    require(catalog.pages().size() == 16, "other platforms include pin management");
+    require(catalog.pages().size() == 17, "other platforms include Account and pin management");
 #endif
 
     for (const auto& pageId :
@@ -712,12 +756,13 @@ void builtInCatalogIsCompleteAndValid() {
                     const auto& select = std::get<settings::SettingsSelectDefinition>(item.payload);
 #ifdef Q_OS_MACOS
                     require(select.binding == settings::SettingsSelectBinding::UpdateMode &&
-                                select.options.size() == 2 &&
+                                select.options.size() == 3 &&
+                                select.options[2].value == QStringLiteral("next_launch") &&
                                 select.options[0].value == QStringLiteral("manual") &&
                                 select.options[1].value == QStringLiteral("check") &&
                                 storage::ConfigurationSchema::defaultValue(item.configurationKey) ==
-                                    QStringLiteral("check"),
-                            "macOS exposes only manual and automatic checks");
+                                    QStringLiteral("next_launch"),
+                            "macOS exposes manual, check and next-launch policies");
                     const auto migrated = storage::ConfigurationSchema::normalize(
                         item.configurationKey, QStringLiteral("download"));
                     require(migrated.valid && migrated.changed &&
@@ -725,9 +770,9 @@ void builtInCatalogIsCompleteAndValid() {
                             "legacy automatic download migrates to check");
                     const auto nextLaunch = storage::ConfigurationSchema::normalize(
                         item.configurationKey, QStringLiteral("next_launch"));
-                    require(nextLaunch.valid && nextLaunch.changed &&
-                                nextLaunch.value == QStringLiteral("check"),
-                            "Windows next-launch installation migrates to checks on macOS");
+                    require(nextLaunch.valid && !nextLaunch.changed &&
+                                nextLaunch.value == QStringLiteral("next_launch"),
+                            "next-launch policy remains intact on macOS");
 #else
                     require(select.binding == settings::SettingsSelectBinding::UpdateMode &&
                                 select.options.size() == 4 &&
@@ -736,8 +781,8 @@ void builtInCatalogIsCompleteAndValid() {
                                 select.options[2].value == QStringLiteral("download") &&
                                 select.options[3].value == QStringLiteral("next_launch") &&
                                 storage::ConfigurationSchema::defaultValue(item.configurationKey) ==
-                                    QStringLiteral("download"),
-                            "update policy exposes all four modes with automatic download default");
+                                    QStringLiteral("next_launch"),
+                            "update policy exposes all four modes with next-launch default");
 #endif
                     foundUpdates = true;
                 }
@@ -768,7 +813,6 @@ void builtInCatalogIsCompleteAndValid() {
         QStringLiteral("screenshot.restore-original-screen-colors"),
     };
     const QSet<QString> macOnlyItems{
-        QStringLiteral("system.login-item-settings"),
         QStringLiteral("screen-recording"),
         QStringLiteral("accessibility"),
         QStringLiteral("input-monitoring"),
@@ -1280,7 +1324,7 @@ void builtInCatalogIsCompleteAndValid() {
                 settings::SettingsSwitchBinding::DrawingAlwaysShowFirstToolbarGroupButton &&
             !storage::ConfigurationSchema::defaultValue(firstToolbarGroupButton->configurationKey)
                  .toBool() &&
-            drawingSettingsSection.items.size() == 8 &&
+            drawingSettingsSection.items.size() == 10 &&
             drawingSettingsSection.items.at(4).id == rememberLastUsedTool->id &&
             drawingSettingsSection.items.at(5).id == firstToolbarGroupButton->id,
         "the default-off first toolbar group button switch must follow Remember last used tool");
@@ -1320,7 +1364,8 @@ void builtInCatalogIsCompleteAndValid() {
         "automatic selection exclusions must have a registered resettable multi-select binding");
     const auto& paletteRegistry = settings::builtInSettingsRegistry();
     for (const auto binding : {settings::SettingsColorPaletteBinding::StrokeColors,
-                               settings::SettingsColorPaletteBinding::FillColors}) {
+                               settings::SettingsColorPaletteBinding::FillColors,
+                               settings::SettingsColorPaletteBinding::HighlightColors}) {
         const auto* field = paletteRegistry.fieldForColorPalette(binding);
         require(field != nullptr && field->pageId == QStringLiteral("screenshots") &&
                     field->sectionId == QStringLiteral("drawing-settings") &&
@@ -1329,8 +1374,17 @@ void builtInCatalogIsCompleteAndValid() {
                     field->defaultValue.toArray().size() == 5 &&
                     std::get<settings::SettingsColorPaletteDefinition>(field->definition->payload)
                             .colorCount == 5,
-                "stroke and fill quick-set palettes expose five resettable color settings");
+                "stroke, fill and highlight palettes expose five resettable color settings");
     }
+    const auto& highlightPresets = drawingSettingsSection.items.at(9);
+    require(drawingSettingsSection.items.at(8).id == QStringLiteral("drawing.fill-color-presets") &&
+                highlightPresets.id == QStringLiteral("drawing.highlight-color-presets") &&
+                highlightPresets.title.translated() == QStringLiteral("Highlight color presets") &&
+                highlightPresets.configurationKey ==
+                    QStringLiteral("screenshot/highlight_color_presets") &&
+                std::get<settings::SettingsColorPaletteDefinition>(highlightPresets.payload)
+                        .buttonLabel.translated() == QStringLiteral("Highlight color preset %1"),
+            "highlight presets must immediately follow fill presets with accessible slot labels");
 
     const auto* pinDoubleClick =
         catalog.item({QStringLiteral("pinned-windows"), QStringLiteral("pin-to-screen-settings"),
@@ -1503,6 +1557,9 @@ void builtInCatalogIsCompleteAndValid() {
                 exportConfiguration->configurationKey.isEmpty() &&
                 importConfiguration->configurationKey.isEmpty(),
             "data storage leads with export and import before the storage-directory widget");
+    require(catalog.item({QStringLiteral("files-history"), QStringLiteral("storage-status"),
+                          QStringLiteral("storage.clear-thumbnails")}) == nullptr,
+            "retired thumbnail cache cleanup must not appear in settings");
     const auto* exportAction =
         std::get_if<settings::SettingsActionDefinition>(&exportConfiguration->payload);
     const auto* importAction =
@@ -1523,7 +1580,7 @@ void builtInCatalogIsCompleteAndValid() {
                 importAction->fileOpen->fileFilter.source != nullptr &&
                 exportAction->successMessage.has_value() &&
                 importAction->successMessage.has_value(),
-            "configuration items must use the thumbnail-cache action style with dedicated icons, "
+            "configuration items must use action buttons with dedicated icons, "
             "catalog-driven import file picking, and success messages");
 
     const auto* pdfPageSize =
@@ -1678,35 +1735,36 @@ void builtInCatalogIsCompleteAndValid() {
             break;
         }
     }
-    require(settingsGroup != nullptr && settingsGroup->pages.size() >= 3 &&
+    require(settingsGroup != nullptr && settingsGroup->pages.size() >= 4 &&
                 settingsGroup->pages.at(0).pageId == QStringLiteral("general") &&
-                settingsGroup->pages.at(1).pageId == QStringLiteral("general-appearance") &&
-                settingsGroup->pages.at(2).pageId == QStringLiteral("screenshots"),
-            "Screenshots must appear below General and Appearance in the Settings navigation");
+                settingsGroup->pages.at(1).pageId == QStringLiteral("account") &&
+                settingsGroup->pages.at(2).pageId == QStringLiteral("general-appearance") &&
+                settingsGroup->pages.at(3).pageId == QStringLiteral("screenshots"),
+            "Account follows General, with Appearance and Screenshots after it");
 #ifdef Q_OS_MACOS
-    constexpr int expectedSettingsPages = 11;
+    constexpr int expectedSettingsPages = 12;
     require(settingsGroup->pages.constLast().pageId == QStringLiteral("app-permissions"),
             "macOS App Permissions follows System settings");
 #else
-    constexpr int expectedSettingsPages = 10;
+    constexpr int expectedSettingsPages = 11;
 #endif
     require(settingsGroup->title.translated() == QStringLiteral("Settings") &&
                 settingsGroup->pages.size() == expectedSettingsPages &&
-                settingsGroup->pages.at(3).pageId == QStringLiteral("pinned-windows") &&
-                settingsGroup->pages.at(4).pageId == QStringLiteral("screen-recording") &&
-                settingsGroup->pages.at(5).pageId ==
+                settingsGroup->pages.at(4).pageId == QStringLiteral("pinned-windows") &&
+                settingsGroup->pages.at(5).pageId == QStringLiteral("screen-recording") &&
+                settingsGroup->pages.at(6).pageId ==
                     QStringLiteral("text-recognition-translation") &&
-                settingsGroup->pages.at(6).pageId == QStringLiteral("shortcuts-mouse") &&
-                settingsGroup->pages.at(7).pageId == QStringLiteral("desktop-tools") &&
-                settingsGroup->pages.at(8).pageId == QStringLiteral("files-history") &&
-                settingsGroup->pages.at(9).pageId == QStringLiteral("connections-services"),
+                settingsGroup->pages.at(7).pageId == QStringLiteral("shortcuts-mouse") &&
+                settingsGroup->pages.at(8).pageId == QStringLiteral("desktop-tools") &&
+                settingsGroup->pages.at(9).pageId == QStringLiteral("files-history") &&
+                settingsGroup->pages.at(10).pageId == QStringLiteral("connections-services"),
             "Settings navigation must group feature controls and shared preferences predictably");
     const auto* applicationShortcutsPage = catalog.page(QStringLiteral("shortcuts-mouse"));
     require(applicationShortcutsPage != nullptr &&
                 applicationShortcutsPage->route == QStringLiteral("/settings/shortcuts-mouse") &&
                 applicationShortcutsPage->title.translated() ==
                     QStringLiteral("Application shortcuts") &&
-                settingsGroup->pages.at(6).id == QStringLiteral("nav.shortcuts-mouse"),
+                settingsGroup->pages.at(7).id == QStringLiteral("nav.shortcuts-mouse"),
             "Application shortcuts must expose the renamed title, route, and navigation");
     const auto* drawingShortcuts =
         catalog.section(QStringLiteral("shortcuts-mouse"), QStringLiteral("drawing-shortcuts"));
@@ -1845,7 +1903,7 @@ void builtInCatalogIsCompleteAndValid() {
             screenshotShortcuts->items.at(5).title.translated() ==
                 QStringLiteral("Move entire selection") &&
             screenshotShortcuts->items.at(6).title.translated() ==
-                QStringLiteral("Maintain selection aspect ratio") &&
+                QStringLiteral("Keep selection width and height consistent") &&
             screenshotShortcuts->items.at(7).title.translated() ==
                 QStringLiteral("Selection aspect ratio snap") &&
             screenshotShortcuts->items.at(8).title.translated() ==
@@ -2535,15 +2593,15 @@ void globalShortcutActionsHaveStableContracts() {
         {Action::ScreenshotFocusedWindow, "screenshot", "quick.screenshot-focused-window",
          "global_shortcuts/screenshot_focused_window",
          settings::SettingsCommandKind::ExecuteQuickAction},
+        {Action::OpenCaptureHistory, "screenshot", "quick.open-capture-history",
+         "global_shortcuts/open_capture_history",
+         settings::SettingsCommandKind::ExecuteQuickAction},
         {Action::ScreenRecord, "screen-recording", "quick.screen-record",
          "global_shortcuts/screen_record", settings::SettingsCommandKind::ExecuteQuickAction},
         {Action::ScreenRecordCopy, "screen-recording", "quick.screen-record-copy",
          "global_shortcuts/screen_record_copy", settings::SettingsCommandKind::ExecuteQuickAction},
         {Action::OpenScreenRecordingFolder, "screen-recording",
          "quick.open-screen-recording-folder", "global_shortcuts/open_screen_recording_folder",
-         settings::SettingsCommandKind::ExecuteQuickAction},
-        {Action::OpenCaptureHistory, "other", "quick.open-capture-history",
-         "global_shortcuts/open_capture_history",
          settings::SettingsCommandKind::ExecuteQuickAction},
         {Action::OpenPinToScreenManagement, "pin-to-screen", "quick.open-pin-to-screen-management",
          "global_shortcuts/open_pin_to_screen_management",
@@ -2558,6 +2616,9 @@ void globalShortcutActionsHaveStableContracts() {
         {Action::SplitSelectedImages, "other", "quick.split-selected-images",
          "global_shortcuts/split_selected_images",
          settings::SettingsCommandKind::ExecuteQuickAction},
+        {Action::EditSelectedImages, "other", "quick.edit-selected-images",
+         "global_shortcuts/edit_selected_images",
+         settings::SettingsCommandKind::ExecuteQuickAction},
         {Action::TranslateSelectedText, "other", "quick.translate-selected-text",
          "global_shortcuts/translate_selected_text",
          settings::SettingsCommandKind::ExecuteQuickAction},
@@ -2570,6 +2631,8 @@ void globalShortcutActionsHaveStableContracts() {
         {Action::ToggleGlobalShortcuts, "other", "quick.toggle-global-hotkeys",
          "global_shortcuts/toggle_global_hotkeys",
          settings::SettingsCommandKind::ExecuteQuickAction},
+        {Action::ToggleGlobalMouse, "other", "quick.toggle-global-mouse",
+         "global_shortcuts/toggle_global_mouse", settings::SettingsCommandKind::ExecuteQuickAction},
         {Action::ToggleDisableOnFocusedFullscreenWindow, "other",
          "quick.toggle-disable-on-focused-fullscreen-window",
          "global_shortcuts/toggle_disable_on_focused_fullscreen_window",
@@ -2620,7 +2683,7 @@ void globalShortcutActionsHaveStableContracts() {
     }
 
     require(actions.size() == expectations.size() &&
-                expectations.size() == 28 + WINDOW_TOPMOST_ACTION_COUNT,
+                expectations.size() == 30 + WINDOW_TOPMOST_ACTION_COUNT,
             "the global-hotkeys catalog must expose all shortcut actions exactly once");
     const auto* stitch = catalog.itemForShortcut(Action::StitchSelectedImages);
     const auto* stitchSchema = storage::ConfigurationSchema::entry(
@@ -2640,6 +2703,14 @@ void globalShortcutActionsHaveStableContracts() {
                 snow_shot::presentation::icons::custom::outlined::ImageSplitting() &&
             splitSchema && splitSchema->defaultValue.toArray().isEmpty(),
         "split selected images uses its existing icon and starts unassigned");
+    const auto* edit = catalog.itemForShortcut(Action::EditSelectedImages);
+    const auto* editSchema = storage::ConfigurationSchema::entry(
+        QStringLiteral("global_shortcuts/edit_selected_images"));
+    require(edit && edit->title.translated() == QStringLiteral("Edit selected images") &&
+                std::get<settings::SettingsShortcutActionDefinition>(edit->payload).iconFactory() ==
+                    snow_shot::presentation::icons::custom::outlined::ImageEditing() &&
+                editSchema && editSchema->defaultValue.toArray().isEmpty(),
+            "edit selected images uses its existing icon and starts unassigned");
     const auto* pinnedManagementShortcut =
         catalog.itemForShortcut(Action::OpenPinToScreenManagement);
     const auto* pinnedManagementSchema = storage::ConfigurationSchema::entry(
@@ -2709,50 +2780,53 @@ void globalShortcutActionsHaveStableContracts() {
     const auto* trayMenuSchema =
         storage::ConfigurationSchema::entry(QStringLiteral("tray/menu_options"));
     require(trayGroups.size() == 5 && trayGroups.at(0).id == QStringLiteral("screenshot") &&
-                trayGroups.at(0).options.size() == 12 &&
+                trayGroups.at(0).options.size() == 13 &&
                 trayGroups.at(1).id == QStringLiteral("pin-to-screen") &&
                 trayGroups.at(1).options.size() == 5 &&
                 trayGroups.at(2).id == QStringLiteral("screen-recording") &&
                 trayGroups.at(2).options.size() == 3 &&
                 trayGroups.at(3).id == QStringLiteral("other") &&
-                trayGroups.at(3).options.size() == 7 + WINDOW_TOPMOST_ACTION_COUNT &&
+                trayGroups.at(3).options.size() == 8 + WINDOW_TOPMOST_ACTION_COUNT &&
                 trayGroups.at(4).id == QStringLiteral("system") &&
                 trayGroups.at(4).options.size() == 4 &&
-                trayOptionIds.size() == 31 + WINDOW_TOPMOST_ACTION_COUNT &&
+                trayOptionIds.size() == 33 + WINDOW_TOPMOST_ACTION_COUNT &&
                 trayOptionIds.at(6) == QStringLiteral("quick.screenshot-scrolling") &&
                 trayOptionIds.at(8) == QStringLiteral("quick.screenshot-save") &&
                 trayOptionIds.at(9) == QStringLiteral("quick.screenshot-quick-save") &&
-                trayOptionIds.at(12) == QStringLiteral("quick.pin-clipboard-content") &&
-                trayOptionIds.at(13) == QStringLiteral("quick.pin-selected-files") &&
-                trayOptionIds.at(14) == QStringLiteral("quick.restore-last-closed-windows") &&
-                trayOptionIds.at(15) == QStringLiteral("quick.hide-show-all-windows") &&
-                trayOptionIds.at(16) == QStringLiteral("quick.open-pin-to-screen-management") &&
-                trayOptionIds.at(17) == QStringLiteral("quick.screen-record") &&
-                trayOptionIds.at(18) == QStringLiteral("quick.screen-record-copy") &&
-                trayOptionIds.at(19) == QStringLiteral("quick.open-screen-recording-folder") &&
-                trayOptionIds.at(20) == QStringLiteral("quick.open-capture-history") &&
+                trayOptionIds.at(12) == QStringLiteral("quick.open-capture-history") &&
+                trayOptionIds.at(13) == QStringLiteral("quick.pin-clipboard-content") &&
+                trayOptionIds.at(14) == QStringLiteral("quick.pin-selected-files") &&
+                trayOptionIds.at(15) == QStringLiteral("quick.restore-last-closed-windows") &&
+                trayOptionIds.at(16) == QStringLiteral("quick.hide-show-all-windows") &&
+                trayOptionIds.at(17) == QStringLiteral("quick.open-pin-to-screen-management") &&
+                trayOptionIds.at(18) == QStringLiteral("quick.screen-record") &&
+                trayOptionIds.at(19) == QStringLiteral("quick.screen-record-copy") &&
+                trayOptionIds.at(20) == QStringLiteral("quick.open-screen-recording-folder") &&
                 trayOptionIds.at(21) == QStringLiteral("quick.global-canvas") &&
                 trayOptionIds.at(22) == QStringLiteral("quick.stitch-selected-images") &&
                 trayOptionIds.at(23) == QStringLiteral("quick.split-selected-images") &&
-                trayOptionIds.at(24) == QStringLiteral("quick.translate-selected-text") &&
-                trayOptionIds.at(25 + WINDOW_TOPMOST_ACTION_COUNT) ==
-                    QStringLiteral("quick.toggle-global-hotkeys") &&
+                trayOptionIds.at(24) == QStringLiteral("quick.edit-selected-images") &&
+                trayOptionIds.at(25) == QStringLiteral("quick.translate-selected-text") &&
                 trayOptionIds.at(26 + WINDOW_TOPMOST_ACTION_COUNT) ==
-                    QStringLiteral("quick.toggle-disable-on-focused-fullscreen-window") &&
+                    QStringLiteral("quick.toggle-global-hotkeys") &&
                 trayOptionIds.at(27 + WINDOW_TOPMOST_ACTION_COUNT) ==
+                    QStringLiteral("quick.toggle-global-mouse") &&
+                trayOptionIds.at(28 + WINDOW_TOPMOST_ACTION_COUNT) ==
+                    QStringLiteral("quick.toggle-disable-on-focused-fullscreen-window") &&
+                trayOptionIds.at(29 + WINDOW_TOPMOST_ACTION_COUNT) ==
                     QStringLiteral("tray.window-grouping") &&
                 trayGroups.at(4).options.at(0).kind ==
                     settings::SettingsTrayMenuOptionKind::WindowGrouping &&
-                trayOptionIds.at(28 + WINDOW_TOPMOST_ACTION_COUNT) ==
+                trayOptionIds.at(30 + WINDOW_TOPMOST_ACTION_COUNT) ==
                     QStringLiteral("tray.show-main-window") &&
-                trayOptionIds.at(29 + WINDOW_TOPMOST_ACTION_COUNT) ==
+                trayOptionIds.at(31 + WINDOW_TOPMOST_ACTION_COUNT) ==
                     QStringLiteral("tray.restart-app") &&
                 trayGroups.at(4).options.at(2).kind ==
                     settings::SettingsTrayMenuOptionKind::RestartApp &&
                 trayGroups.at(4).options.at(2).iconFactory &&
                 trayGroups.at(4).options.at(2).iconFactory() ==
                     snow_shot::presentation::icons::custom::outlined::Restart() &&
-                trayOptionIds.at(30 + WINDOW_TOPMOST_ACTION_COUNT) == QStringLiteral("tray.exit") &&
+                trayOptionIds.at(32 + WINDOW_TOPMOST_ACTION_COUNT) == QStringLiteral("tray.exit") &&
                 trayMenuSchema != nullptr && trayMenuSchema->allowedStringValues == trayOptionIds,
             "tray menu options must derive all global-hotkey groups and append system commands");
 
@@ -2767,7 +2841,9 @@ void globalShortcutActionsHaveStableContracts() {
          {QStringLiteral("quick.open-pin-to-screen-management"),
           QStringLiteral("quick.hide-show-all-windows"), QStringLiteral("quick.global-canvas"),
           QStringLiteral("quick.stitch-selected-images"),
-          QStringLiteral("quick.split-selected-images")}) {
+          QStringLiteral("quick.split-selected-images"),
+          QStringLiteral("quick.edit-selected-images"),
+          QStringLiteral("quick.toggle-global-mouse")}) {
         require(!trayMenuSchema->defaultValue.toArray().contains(id),
                 "optional tray actions must remain hidden by default");
         const auto normalized = storage::ConfigurationSchema::normalize(
@@ -2802,6 +2878,7 @@ void globalShortcutActionsHaveStableContracts() {
             shortcutToggleTrayOption->checkable &&
             checkableOptionIds ==
                 QStringList{QStringLiteral("quick.toggle-global-hotkeys"),
+                            QStringLiteral("quick.toggle-global-mouse"),
                             QStringLiteral("quick.toggle-disable-on-focused-fullscreen-window")},
         "the tray must keep the historical label and toggle checkmark for the hotkey switch");
 
@@ -2820,6 +2897,13 @@ void globalShortcutActionsHaveStableContracts() {
                 toggleSchema->defaultValue.toArray().isEmpty() &&
                 toggleSchema->maximumListItems == 2,
             "the global-hotkey toggle must ship without a default binding");
+    const auto* mouseToggle = catalog.itemForShortcut(Action::ToggleGlobalMouse);
+    const auto* mouseToggleSchema =
+        storage::ConfigurationSchema::entry(QStringLiteral("global_shortcuts/toggle_global_mouse"));
+    require(mouseToggle && mouseToggleSchema &&
+                mouseToggleSchema->defaultValue.toArray().isEmpty() &&
+                mouseToggle->title.translated() == QStringLiteral("Disable/enable global mouse"),
+            "the global mouse toggle uses the requested title and starts unassigned");
 
     const auto* fullscreenToggleSchema = storage::ConfigurationSchema::entry(
         QStringLiteral("global_shortcuts/toggle_disable_on_focused_fullscreen_window"));
@@ -2916,8 +3000,10 @@ void globalShortcutActionsHaveStableContracts() {
         catalog.item({QStringLiteral("global-hotkeys"), QStringLiteral("screen-recording"),
                       QStringLiteral("quick.open-screen-recording-folder")});
     const auto* openHistory =
-        catalog.item({QStringLiteral("global-hotkeys"), QStringLiteral("other"),
+        catalog.item({QStringLiteral("global-hotkeys"), QStringLiteral("screenshot"),
                       QStringLiteral("quick.open-capture-history")});
+    require(openHistory != nullptr && openHistory == &screenshotSection->items.constLast(),
+            "Screenshot history must be the last Screenshot quick action");
     const auto* pinClipboard =
         catalog.item({QStringLiteral("global-hotkeys"), QStringLiteral("pin-to-screen"),
                       QStringLiteral("quick.pin-clipboard-content")});
@@ -2927,24 +3013,25 @@ void globalShortcutActionsHaveStableContracts() {
     const auto* otherShortcuts =
         catalog.section(QStringLiteral("global-hotkeys"), QStringLiteral("other"));
     require(otherShortcuts != nullptr &&
-                otherShortcuts->items.size() == 7 + WINDOW_TOPMOST_ACTION_COUNT &&
-                otherShortcuts->items.at(0).id == QStringLiteral("quick.open-capture-history") &&
-                otherShortcuts->items.at(1).id == QStringLiteral("quick.global-canvas") &&
-                otherShortcuts->items.at(2).id == QStringLiteral("quick.stitch-selected-images") &&
-                otherShortcuts->items.at(3).id == QStringLiteral("quick.split-selected-images") &&
+                otherShortcuts->items.size() == 8 + WINDOW_TOPMOST_ACTION_COUNT &&
+                otherShortcuts->items.at(0).id == QStringLiteral("quick.global-canvas") &&
+                otherShortcuts->items.at(1).id == QStringLiteral("quick.stitch-selected-images") &&
+                otherShortcuts->items.at(2).id == QStringLiteral("quick.split-selected-images") &&
+                otherShortcuts->items.at(3).id == QStringLiteral("quick.edit-selected-images") &&
                 otherShortcuts->items.at(4).id == QStringLiteral("quick.translate-selected-text") &&
                 otherShortcuts->items.at(5 + WINDOW_TOPMOST_ACTION_COUNT).id ==
                     QStringLiteral("quick.toggle-global-hotkeys") &&
                 otherShortcuts->items.at(6 + WINDOW_TOPMOST_ACTION_COUNT).id ==
+                    QStringLiteral("quick.toggle-global-mouse") &&
+                otherShortcuts->items.at(7 + WINDOW_TOPMOST_ACTION_COUNT).id ==
                     QStringLiteral("quick.toggle-disable-on-focused-fullscreen-window"),
-            "Other quick actions expose history, canvas, stitching, splitting, translation, and "
-            "hotkey toggles");
+            "Other quick actions preserve their order after moving Screenshot history");
 #ifdef Q_OS_WIN
     const auto* windowTopmost = catalog.itemForShortcut(Action::ToggleWindowUnderCursorAlwaysOnTop);
     require(windowTopmost && otherShortcuts->items.at(5).id == windowTopmost->id &&
                 windowTopmost->title.translated() ==
                     QStringLiteral("Toggle always on top for the window under the cursor") &&
-                trayOptionIds.at(25) == windowTopmost->id &&
+                trayOptionIds.at(26) == windowTopmost->id &&
                 !trayMenuSchema->defaultValue.toArray().contains(windowTopmost->id),
             "window-under-cursor topmost follows translation and starts hidden in the tray");
     const settings::SettingsSearchIndex topmostSearch(settings::builtInSettingsRegistry());
@@ -3240,16 +3327,18 @@ void searchIndexIsGeneratedAndRanked() {
     require(!split.isEmpty() &&
                 split.first().location.itemId == QStringLiteral("quick.split-selected-images"),
             "selected-image splitting is searchable by its action title");
+    const auto edit = index.search(QStringLiteral("Edit selected images"));
+    require(!edit.isEmpty() &&
+                edit.first().location.itemId == QStringLiteral("quick.edit-selected-images"),
+            "selected-image editing is searchable by its action title");
     const auto updates = index.search(QStringLiteral("Software updates"));
     require(!updates.isEmpty() &&
                 updates.constFirst().location.itemId == QStringLiteral("updates.mode"),
             "update policy is directly discoverable through settings search");
-#ifndef Q_OS_MACOS
     const auto nextLaunchUpdates = index.search(QStringLiteral("Auto-update on next launch"));
     require(!nextLaunchUpdates.isEmpty() &&
                 nextLaunchUpdates.constFirst().location.itemId == QStringLiteral("updates.mode"),
             "next-launch updates must be searchable by their option label");
-#endif
     const auto selectedText = index.search(QStringLiteral("Translate selected text"));
     require(!selectedText.isEmpty() &&
                 selectedText.constFirst().location ==
@@ -3863,11 +3952,13 @@ void fullscreenWindowFilterHasStableContract() {
         settings::SettingsSwitchBinding::DisableShortcutsOnFocusedFullscreen);
     const auto* filter =
         registry.fieldForSelect(settings::SettingsSelectBinding::FullscreenWindowFilter);
+    const auto* scope =
+        registry.fieldForMultiSelect(settings::SettingsMultiSelectBinding::FullscreenDisableScope);
     const auto* automatic =
         catalog.section(QStringLiteral("global-hotkeys"), QStringLiteral("global-hotkeys"));
-    require(filter && automatic && automatic->items.size() == 2 &&
+    require(fullscreen && filter && scope && automatic && automatic->items.size() == 3 &&
                 automatic->items.at(0).id == fullscreen->id &&
-                automatic->items.at(1).id == filter->id &&
+                automatic->items.at(1).id == filter->id && automatic->items.at(2).id == scope->id &&
                 filter->reset == settings::SettingsSectionReset::GlobalShortcuts &&
                 filter->configurationKey ==
                     QStringLiteral("global_shortcuts/fullscreen_window_filter") &&
@@ -3882,6 +3973,17 @@ void fullscreenWindowFilterHasStableContract() {
                 filterSelect.options.at(1).value == QStringLiteral("game_windows") &&
                 filterSelect.options.at(1).label.translated() == QStringLiteral("Game windows"),
             "the fullscreen filter exposes exactly the requested two options");
+    const auto& scopeSelect =
+        std::get<settings::SettingsMultiSelectDefinition>(scope->definition->payload);
+    require(scope->reset == settings::SettingsSectionReset::GlobalShortcuts &&
+                scope->defaultValue.toArray() == QJsonArray{QStringLiteral("global_shortcuts")} &&
+                scopeSelect.options.size() == 2 &&
+                scopeSelect.options.at(0).value == QStringLiteral("global_shortcuts") &&
+                scopeSelect.options.at(0).label.translated() ==
+                    QStringLiteral("Global shortcuts") &&
+                scopeSelect.options.at(1).value == QStringLiteral("global_mouse") &&
+                scopeSelect.options.at(1).label.translated() == QStringLiteral("Global mouse"),
+            "disable scope offers both inputs and defaults to shortcuts only");
     const auto filterHits = search.search(QStringLiteral("Window filter type"));
     require(!filterHits.isEmpty() && filterHits.first().location.itemId == filter->id,
             "search locates the fullscreen window filter");
@@ -3985,8 +4087,11 @@ void featureNavigationAndSearchAreConsistent() {
     require(tray && floating && tray->reset == settings::SettingsSectionReset::Tray &&
                 floating->reset == settings::SettingsSectionReset::FloatingToolbar &&
                 registry.fieldsForReset(tray->reset).size() == 8 &&
-                registry.fieldsForReset(floating->reset).size() == 3,
+                registry.fieldsForReset(floating->reset).size() == 4,
             "merged desktop categories include every control in their reset scopes");
+    require(floating->items[0].id == QStringLiteral("floating-toolbar.enabled") &&
+                floating->items[1].id == QStringLiteral("floating-toolbar.drop-behavior"),
+            "toolbar drop behavior is immediately below Show toolbar");
     auto pages = catalog.pages();
     auto page = std::find_if(pages.begin(), pages.end(), [](const auto& definition) {
         return definition.id == QStringLiteral("screenshots");
@@ -4019,23 +4124,26 @@ void memoryOptimizationPolicyCatalog() {
     const settings::SettingsSearchIndex index(registry);
 #if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
     const auto* section = catalog.section(QStringLiteral("general"), QStringLiteral("core"));
-    require(section != nullptr && section->items.size() == 2 && section->items.last().id == id &&
+    require(section != nullptr && !section->items.isEmpty() && section->items.last().id == id &&
                 section->reset == settings::SettingsSectionReset::SystemSettings &&
                 item != nullptr && item->configurationKey == key &&
                 item->title.translated() == QStringLiteral("Memory optimization policy"),
-            "supported platforms expose memory policy second in Application performance");
+            "supported platforms expose memory policy last in Application performance");
 #ifdef Q_OS_MACOS
-    require(section->items.first().id == QStringLiteral("system.application-qos") &&
+    require(section->items.size() == 2 &&
+                section->items.first().id == QStringLiteral("system.application-qos") &&
                 item->description.translated() ==
                     QStringLiteral("Smart control releases unused heap memory while the app is "
                                    "idle. Active captures and pinned images are kept"),
             "macOS exposes memory policy after QoS with heap reclamation guidance");
 #else
-    require(section->items.first().id == QStringLiteral("system.application-priority") &&
+    require(section->items.size() == 3 &&
+                section->items.first().id == QStringLiteral("system.application-priority") &&
+                section->items.at(1).id == QStringLiteral("system.power-qos") &&
                 item->description.translated() ==
                     QStringLiteral("Smart control trims resident memory while the app is idle. "
                                    "The next use may briefly take longer"),
-            "Windows retains memory policy after priority with resident memory guidance");
+            "Windows exposes memory policy after Power QoS with resident memory guidance");
 #endif
     const auto* select = std::get_if<settings::SettingsSelectDefinition>(&item->payload);
     require(select != nullptr &&
@@ -4194,8 +4302,25 @@ int main(int argc, char** argv) {
         require(section && section->items.size() == 5 &&
                     section->items.at(0).id == u"configuration.export" &&
                     section->items.at(1).id == u"configuration.import" &&
-                    section->items.at(2).id == u"storage.status",
+                    section->items.at(2).id == u"storage.status" &&
+                    section->items.at(3).id == u"storage.export-logs" &&
+                    section->items.at(4).id == u"storage.clear-recording-temp",
                 "backup and restore precede storage status in the shared category");
+        require(!catalog.item({QStringLiteral("files-history"), QStringLiteral("storage-status"),
+                               QStringLiteral("storage.clear-thumbnails")}),
+                "retired thumbnail cache cleanup stays absent from the catalog");
+        const auto& exportItem = section->items.at(3);
+        const auto* exportAction =
+            std::get_if<settings::SettingsActionDefinition>(&exportItem.payload);
+        require(exportItem.title.translated() == u"Export logs" && exportAction &&
+                    exportAction->binding == settings::SettingsActionBinding::ExportLogs &&
+                    exportAction->buttonText.translated() == u"Copy" &&
+                    exportAction->successMessage.has_value(),
+                "log export has the standard Copy action and completion feedback");
+        const auto matches = settings::SettingsSearchIndex(settings::builtInSettingsRegistry())
+                                 .search(QStringLiteral("Export logs"));
+        require(!matches.isEmpty() && matches.front().location.itemId == exportItem.id,
+                "log export is discoverable by its title");
 #ifdef Q_OS_WIN
         require(section->title.translated() == u"Data storage" &&
                     section->items.at(2).title.translated() == u"Data storage",
@@ -4251,15 +4376,19 @@ int main(int argc, char** argv) {
     const auto* loginSettings =
         adminCatalog.item({QStringLiteral("general"), QStringLiteral("system-general"),
                            QStringLiteral("system.login-item-settings")});
-    require(login && QString::fromUtf8(login->title.source) == u"Launch at login" &&
-                QString::fromUtf8(login->description.source) ==
-                    u"Start Snow Shot in the background when you log in" &&
-                login->configurationKey == u"system/auto_start_at_boot",
-            "macOS login setting preserves its binding with native wording");
-    require(loginSettings &&
-                std::get<settings::SettingsActionDefinition>(loginSettings->payload).binding ==
-                    settings::SettingsActionBinding::OpenLoginItemSettings,
-            "macOS exposes the native login settings action");
+    require(
+        login && QString::fromUtf8(login->title.source) == u"Open at login" &&
+            QString::fromUtf8(login->description.source) ==
+                u"Automatically start Snow Shot in the background when you log in to your Mac" &&
+            login->configurationKey == u"system/auto_start_at_boot",
+        "macOS login setting preserves its binding with native wording");
+    require(!loginSettings, "macOS exposes only the login toggle without a setup action");
+    const settings::SettingsSearchIndex loginSearch(settings::builtInSettingsRegistry());
+    for (const auto& query : {QStringLiteral("Open at login"), QStringLiteral("Launch at login")}) {
+        const auto hits = loginSearch.search(query);
+        require(!hits.isEmpty() && hits.first().location.itemId == login->id,
+                "both the new label and the existing login alias find the single toggle");
+    }
     require(adminCatalog.item({QStringLiteral("general"), QStringLiteral("system-general"),
                                QStringLiteral("system.launch-as-administrator")}) == nullptr &&
                 adminCatalog.item({QStringLiteral("general"), QStringLiteral("system-general"),

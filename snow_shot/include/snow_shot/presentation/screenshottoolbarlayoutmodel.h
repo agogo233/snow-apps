@@ -65,6 +65,11 @@ enum class Item {
 enum class Icon {
     Screenshot,
     ScreenshotDelay,
+    ScreenshotHistory,
+    FullScreenCanvas,
+    ImageStitching,
+    ImageSplitting,
+    ImageEditing,
     Select,
     Shape,
     Arrow,
@@ -83,6 +88,7 @@ enum class Icon {
     Separator,
     BarcodeRecognition,
     TableRecognition,
+    DocumentRecognition,
     RecordScreen,
     PinToScreen,
     PinWindowToScreen,
@@ -206,6 +212,9 @@ struct EditorDescriptor {
             {"barcode-recognition", "ScreenshotToolbarEditorSettingsWidget",
              QT_TRANSLATE_NOOP("ScreenshotToolbarEditorSettingsWidget", "Barcode recognition"),
              Icon::BarcodeRecognition},
+            {"document-recognition", "ScreenshotToolbarEditorSettingsWidget",
+             QT_TRANSLATE_NOOP("ScreenshotToolbarEditorSettingsWidget", "Document recognition"),
+             Icon::DocumentRecognition},
             {"table-recognition", "ScreenshotToolbarEditorSettingsWidget",
              QT_TRANSLATE_NOOP("ScreenshotToolbarEditorSettingsWidget", "Table recognition"),
              Icon::TableRecognition},
@@ -365,6 +374,21 @@ editorDescriptors(storage::ScreenshotToolbarLayoutKind kind) {
                         Icon::ScreenshotDelay});
         result.prepend({"screenshot", "FloatingToolbar",
                         QT_TRANSLATE_NOOP("FloatingToolbar", "Screenshot"), Icon::Screenshot});
+        result.append({"screenshot-history", "FloatingToolbar",
+                       QT_TRANSLATE_NOOP("FloatingToolbar", "Screenshot history"),
+                       Icon::ScreenshotHistory});
+        result.append({"global-canvas", "FloatingToolbar",
+                       QT_TRANSLATE_NOOP("FloatingToolbar", "Full-screen canvas"),
+                       Icon::FullScreenCanvas});
+        result.append({"stitch-selected-images", "FloatingToolbar",
+                       QT_TRANSLATE_NOOP("FloatingToolbar", "Stitch selected images"),
+                       Icon::ImageStitching});
+        result.append({"split-selected-images", "FloatingToolbar",
+                       QT_TRANSLATE_NOOP("FloatingToolbar", "Split selected images"),
+                       Icon::ImageSplitting});
+        result.append({"edit-selected-images", "FloatingToolbar",
+                       QT_TRANSLATE_NOOP("FloatingToolbar", "Edit selected images"),
+                       Icon::ImageEditing});
         return result;
     }
     if (kind == storage::ScreenshotToolbarLayoutKind::PinnedActionTools) {
@@ -373,6 +397,7 @@ editorDescriptors(storage::ScreenshotToolbarLayoutKind kind) {
             const QString id = QString::fromLatin1(descriptor.id);
             if (id == QStringLiteral("barcode-recognition") ||
                 id == QStringLiteral("table-recognition") ||
+                id == QStringLiteral("document-recognition") ||
                 id == QStringLiteral("latex-recognition") ||
                 id == QStringLiteral("convert-to-markdown") ||
                 id == QStringLiteral("convert-to-html") ||
@@ -452,7 +477,7 @@ editorDescriptors(storage::ScreenshotToolbarLayoutKind kind) {
     return editionActionPositions({
         {QStringLiteral("convert-to-html"), QStringLiteral("convert-to-markdown"),
          QStringLiteral("latex-recognition"), QStringLiteral("barcode-recognition"),
-         QStringLiteral("table-recognition")},
+         QStringLiteral("document-recognition"), QStringLiteral("table-recognition")},
         {QStringLiteral("record-screen")},
         {QStringLiteral("pin-window-to-screen"), QStringLiteral("pin-to-screen")},
         {QStringLiteral("text-recognition")},
@@ -482,7 +507,7 @@ defaultPositions(storage::ScreenshotToolbarLayoutKind kind) {
         return editionActionPositions({
             {QStringLiteral("convert-to-html"), QStringLiteral("convert-to-markdown"),
              QStringLiteral("latex-recognition"), QStringLiteral("barcode-recognition"),
-             QStringLiteral("table-recognition")},
+             QStringLiteral("document-recognition"), QStringLiteral("table-recognition")},
             {QStringLiteral("text-recognition")},
             {QStringLiteral("text-translation")},
             {QStringLiteral("separator")},
@@ -738,6 +763,23 @@ normalizedLayout(const storage::ScreenshotToolbarLayout& input, const QStringLis
             hidden.insert(QStringLiteral("latex-recognition"));
         }
     }
+    if (known.contains(QStringLiteral("document-recognition")) &&
+        !positioned.contains(QStringLiteral("document-recognition")) &&
+        !hidden.contains(QStringLiteral("document-recognition"))) {
+        for (QStringList& position : result.positions) {
+            const auto table = position.indexOf(QStringLiteral("table-recognition"));
+            if (table >= 0) {
+                position.insert(table, QStringLiteral("document-recognition"));
+                positioned.insert(QStringLiteral("document-recognition"));
+                break;
+            }
+        }
+        if (!positioned.contains(QStringLiteral("document-recognition")) &&
+            hidden.contains(QStringLiteral("table-recognition"))) {
+            result.hidden.push_back(QStringLiteral("document-recognition"));
+            hidden.insert(QStringLiteral("document-recognition"));
+        }
+    }
     auto previousDrawingDefaults = defaultLayout;
     QStringList missingAnnotations;
     for (const QString& id : {QStringLiteral("bracket"), QStringLiteral("angle"),
@@ -979,6 +1021,16 @@ moveItemToHidden(const storage::ScreenshotToolbarLayout& input,
         return snow_shot::presentation::icons::custom::twotone::ScreenshotFeature();
     case Icon::ScreenshotDelay:
         return custom::ScreenshotDelay();
+    case Icon::ScreenshotHistory:
+        return adqt::icons::antd::outlined::History();
+    case Icon::FullScreenCanvas:
+        return custom::FullScreenCanvas();
+    case Icon::ImageStitching:
+        return custom::ImageStitching();
+    case Icon::ImageSplitting:
+        return custom::ImageSplitting();
+    case Icon::ImageEditing:
+        return custom::ImageEditing();
     case Icon::Select:
         return custom::ToolSelect();
     case Icon::Shape:
@@ -1021,6 +1073,8 @@ moveItemToHidden(const storage::ScreenshotToolbarLayout& input,
         return {};
     case Icon::BarcodeRecognition:
         return custom::ScanQrcode();
+    case Icon::DocumentRecognition:
+        return custom::DocumentRecognition();
     case Icon::TableRecognition:
         return custom::TableRecognition();
     case Icon::Latex:

@@ -522,6 +522,10 @@
             <translation>自動對齊</translation>
         </message>
         <message>
+            <source>Bind arrow</source>
+            <translation>綁定箭頭</translation>
+        </message>
+        <message>
             <source>Delete selected elements</source>
             <translation>刪除選取的元素</translation>
         </message>
@@ -574,7 +578,7 @@
         <name>SnowImageQtCodec</name>
         <message>
             <source>Could not decode animated image</source>
-            <translation>無法解碼動態圖片</translation>
+            <translation>無法解碼動態影像</translation>
         </message>
     </context>
     <context>

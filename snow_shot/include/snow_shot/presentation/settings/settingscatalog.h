@@ -70,6 +70,7 @@ enum class SettingsSelectBinding {
     PinTextFont,
     ApplicationPriority,
     ApplicationQoS,
+    PowerQoS,
     MemoryOptimizationPolicy,
     ContextMenuMode,
     Proxy,
@@ -93,6 +94,7 @@ enum class SettingsSelectBinding {
     PinMouseWheelZoomMode,
     PinTextSelectionOnRecognitionResults,
     PinDuplicateContentAction,
+    FloatingToolbarDropBehavior,
     PinDoubleClickAction,
     PinMiddleClickAction,
     ScreenRecordingClarity,
@@ -115,6 +117,7 @@ enum class SettingsSelectBinding {
     TranslationSecondaryTargetLanguage,
     TranslationService,
     ScreenshotSelectionResizeMode,
+    ScreenshotHiDpiImageScaling,
     SkinDisplayMode,
     SkinPosition,
     ToolbarSkinPosition,
@@ -138,6 +141,7 @@ enum class SettingsSwitchBinding {
     OcrHardwareAcceleration,
     ScreenshotAreaTypeHint,
     ShowGuidesByDefault,
+    AdaptiveGuideColors,
     ShowEditSelectionToolbar,
     TrayEnabled,
     TrayUseSystemIconColor,
@@ -152,6 +156,7 @@ enum class SettingsSwitchBinding {
     ScreenshotRestoreOriginalScreenColors,
     ScreenshotCopyImageFileToClipboard,
     ScreenshotCopyAfterPinningToScreen,
+    ScreenshotKeepAnnotationsEditableAfterPinningToScreen,
     ScreenshotShowSaveResult,
     SaveRecognitionResultAsImage,
     ShowOriginalImagePreview,
@@ -187,6 +192,7 @@ enum class SettingsSwitchBinding {
     DrawingAutomaticallySelectNewlyCreatedElements,
     DrawingDeleteTextAfterCursor,
     DrawingRememberLastUsedTool,
+    DrawingSyncToolColors,
     DrawingAlwaysShowFirstToolbarGroupButton,
 };
 
@@ -212,6 +218,7 @@ enum class SettingsMultiSelectBinding {
     DrawingQuickSelectionDisabledTools,
     TrayMenuOptions,
     ScreenshotAutoSaveAfterExecution,
+    FullscreenDisableScope,
 };
 
 struct SettingsMultiSelectDefinition {
@@ -270,6 +277,7 @@ struct SettingsColorDefinition {
 enum class SettingsColorPaletteBinding {
     StrokeColors,
     FillColors,
+    HighlightColors,
 };
 
 struct SettingsColorPaletteDefinition {
@@ -366,13 +374,12 @@ struct SettingsLocalShortcutDefinition {
 };
 
 enum class SettingsActionBinding {
-    OpenLoginItemSettings,
     RestartAsAdministrator,
     ClearCaptureHistory,
     ClearPinnedHistory,
     ClearThumbnailCache,
     ClearRecordingTemp,
-    CopyTodayLog,
+    ExportLogs,
     ExportConfiguration,
     ImportConfiguration,
 };
@@ -563,6 +570,7 @@ struct SettingsSectionDefinition {
 };
 
 enum class SettingsPageKind {
+    Account,
     GeneratedSettings,
     ScreenshotHistory,
     PinnedWindowManagement,

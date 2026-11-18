@@ -4,6 +4,10 @@
     <context>
         <name>ScreenshotQuickTextAnnotationToolbar</name>
         <message>
+            <source>Copy text</source>
+            <translation>Copy text</translation>
+        </message>
+        <message>
             <source>Highlight</source>
             <translation>Highlight</translation>
         </message>
@@ -125,6 +129,10 @@
         <message>
             <source>Angle unit</source>
             <translation>Angle unit</translation>
+        </message>
+        <message>
+            <source>Animate the recording area as it follows the cursor.</source>
+            <translation>Animate the recording area as it follows the cursor.</translation>
         </message>
         <message>
             <source>Animated recording formats do not contain audio</source>
@@ -459,6 +467,10 @@
             <translation>Decimal places</translation>
         </message>
         <message>
+            <source>Dedicated Models</source>
+            <translation>Dedicated Models</translation>
+        </message>
+        <message>
             <source>Dedicated model</source>
             <translation>Dedicated model</translation>
         </message>
@@ -529,6 +541,14 @@
         <message>
             <source>Distribute vertically</source>
             <translation>Distribute vertically</translation>
+        </message>
+        <message>
+            <source>Document Recognition Model</source>
+            <translation>Document Recognition Model</translation>
+        </message>
+        <message>
+            <source>Document recognition</source>
+            <translation>Document recognition</translation>
         </message>
         <message>
             <source>Dotted arrow line</source>
@@ -677,6 +697,10 @@
         <message>
             <source>Filter type</source>
             <translation>Filter type</translation>
+        </message>
+        <message>
+            <source>Follow mouse</source>
+            <translation>Follow mouse</translation>
         </message>
         <message>
             <source>Font family</source>
@@ -979,6 +1003,10 @@
             <translation>Opacity</translation>
         </message>
         <message>
+            <source>Open document file</source>
+            <translation>Open document file</translation>
+        </message>
+        <message>
             <source>Open recording folder</source>
             <translation>Open recording folder</translation>
         </message>
@@ -1135,6 +1163,10 @@
             <translation>Redo</translation>
         </message>
         <message>
+            <source>Reduce jitter</source>
+            <translation>Reduce jitter</translation>
+        </message>
+        <message>
             <source>Regular brush</source>
             <translation>Regular brush</translation>
         </message>
@@ -1283,6 +1315,10 @@
             <translation>Smart erase</translation>
         </message>
         <message>
+            <source>Smooth movement</source>
+            <translation>Smooth movement</translation>
+        </message>
+        <message>
             <source>Snow Shot visual understanding</source>
             <translation>Snow Shot visual understanding</translation>
         </message>
@@ -1393,6 +1429,10 @@
         <message>
             <source>Start arrowhead triangle outline</source>
             <translation>Start arrowhead triangle outline</translation>
+        </message>
+        <message>
+            <source>Start moving the recording area when the cursor enters the outer twelfth of its width or height.</source>
+            <translation>Start moving the recording area when the cursor enters the outer twelfth of its width or height.</translation>
         </message>
         <message>
             <source>Start recording</source>

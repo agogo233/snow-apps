@@ -95,6 +95,8 @@ class ScreenshotColorPresetSettings final {
     bool setStrokeColors(const QVector<QColor>& colors) const;
     [[nodiscard]] QVector<QColor> fillColors() const;
     bool setFillColors(const QVector<QColor>& colors) const;
+    [[nodiscard]] QVector<QColor> highlightColors() const;
+    bool setHighlightColors(const QVector<QColor>& colors) const;
 };
 
 #if SNOW_SHOT_ENABLE_API_CONFIGURATION
@@ -206,6 +208,8 @@ class ShortcutSettings final {
     bool setStitchSelectedImages(const shortcuts::ShortcutBindingList& bindings) const;
     [[nodiscard]] shortcuts::ShortcutBindingList splitSelectedImages() const;
     bool setSplitSelectedImages(const shortcuts::ShortcutBindingList& bindings) const;
+    [[nodiscard]] shortcuts::ShortcutBindingList editSelectedImages() const;
+    bool setEditSelectedImages(const shortcuts::ShortcutBindingList& bindings) const;
     [[nodiscard]] shortcuts::ShortcutBindingList openPinToScreenManagement() const;
     bool setOpenPinToScreenManagement(const shortcuts::ShortcutBindingList& bindings) const;
     [[nodiscard]] shortcuts::ShortcutBindingList openSettings() const;
@@ -228,6 +232,8 @@ class ShortcutSettings final {
     setToggleWindowUnderCursorAlwaysOnTop(const shortcuts::ShortcutBindingList& bindings) const;
     [[nodiscard]] shortcuts::ShortcutBindingList toggleGlobalShortcuts() const;
     bool setToggleGlobalShortcuts(const shortcuts::ShortcutBindingList& bindings) const;
+    [[nodiscard]] shortcuts::ShortcutBindingList toggleGlobalMouse() const;
+    bool setToggleGlobalMouse(const shortcuts::ShortcutBindingList& bindings) const;
     [[nodiscard]] shortcuts::ShortcutBindingList toggleDisableOnFocusedFullscreenWindow() const;
     bool
     setToggleDisableOnFocusedFullscreenWindow(const shortcuts::ShortcutBindingList& bindings) const;
@@ -239,6 +245,8 @@ class GlobalShortcutSettings final {
     bool setDisableOnFocusedFullscreenWindow(bool disabled) const;
     [[nodiscard]] QString fullscreenWindowFilter() const;
     bool setFullscreenWindowFilter(const QString& filter) const;
+    [[nodiscard]] QStringList fullscreenDisableScope() const;
+    bool setFullscreenDisableScope(const QStringList& scope) const;
 };
 
 class ScreenshotSettings final {
@@ -275,6 +283,8 @@ class ScreenshotSettings final {
     bool setMiddleMouseButtonAction(const QString& action) const;
     [[nodiscard]] bool quickSelectionModification() const;
     bool setQuickSelectionModification(bool enabled) const;
+    [[nodiscard]] QString hiDpiImageScaling() const;
+    bool setHiDpiImageScaling(const QString& mode) const;
     [[nodiscard]] QString selectionResizeMode() const;
     bool setSelectionResizeMode(const QString& mode) const;
     [[nodiscard]] QStringList autoSaveAfterExecutionActions() const;
@@ -284,6 +294,8 @@ class ScreenshotSettings final {
     bool setCopyImageFileToClipboard(bool enabled) const;
     [[nodiscard]] bool copyAfterPinningToScreen() const;
     bool setCopyAfterPinningToScreen(bool enabled) const;
+    [[nodiscard]] bool keepAnnotationsEditableAfterPinningToScreen() const;
+    bool setKeepAnnotationsEditableAfterPinningToScreen(bool enabled) const;
     [[nodiscard]] QString imageSaveDirectory() const;
     bool setImageSaveDirectory(const QString& directory) const;
     [[nodiscard]] QString lastManualSaveDirectory() const;
@@ -315,6 +327,10 @@ class ScreenshotSettings final {
 
 class DrawingSettings final {
   public:
+    [[nodiscard]] bool syncToolColors() const;
+    bool setSyncToolColors(bool enabled) const;
+    // The remembered shared color, or the Shape creation stroke before first use.
+    [[nodiscard]] QColor sharedToolColor() const;
     [[nodiscard]] bool automaticallySelectNewlyCreatedElements() const;
     bool setAutomaticallySelectNewlyCreatedElements(bool enabled) const;
     [[nodiscard]] QStringList automaticSelectionExcludedTools() const;
@@ -332,6 +348,10 @@ class DrawingSettings final {
 // Applies partial updates across local shortcut scopes in one commit. Each affected
 // scope is validated against its complete resulting assignment before any values change.
 [[nodiscard]] bool setLocalShortcutValuesAtomic(const QMap<QString, QJsonValue>& values);
+
+// Keeps the shared color and per-tool appearance preferences consistent in one commit.
+// Also accepts drawing section reset values; disabling materializes the current color.
+[[nodiscard]] bool setDrawingStyleValues(QMap<QString, QJsonValue> values);
 
 class ScreenshotShortcutSettings final {
   public:
@@ -491,6 +511,8 @@ class ScreenshotUiSettings final {
     bool setScreenshotAreaTypeHintEnabled(bool enabled) const;
     [[nodiscard]] bool showGuidesByDefault() const;
     bool setShowGuidesByDefault(bool enabled) const;
+    [[nodiscard]] bool adaptiveGuideColors() const;
+    bool setAdaptiveGuideColors(bool enabled) const;
     [[nodiscard]] QColor cursorGuideLineColor() const;
     bool setCursorGuideLineColor(const QColor& color) const;
     [[nodiscard]] QColor selectionCenterGuideLineColor() const;
@@ -547,6 +569,12 @@ class RecordingSettings final {
     bool setMouseTrailColor(const QColor& color) const;
     [[nodiscard]] QColor mouseClickColor() const;
     bool setMouseClickColor(const QColor& color) const;
+    [[nodiscard]] bool followMouse() const;
+    bool setFollowMouse(bool enabled) const;
+    [[nodiscard]] bool followMouseSmoothMovement() const;
+    bool setFollowMouseSmoothMovement(bool enabled) const;
+    [[nodiscard]] bool followMouseReduceJitter() const;
+    bool setFollowMouseReduceJitter(bool enabled) const;
     [[nodiscard]] bool webcamEnabled() const;
     bool setWebcamEnabled(bool enabled) const;
     [[nodiscard]] int webcamSize() const;

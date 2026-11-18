@@ -30,10 +30,13 @@ class SnowCanvasWidget;
 struct ScreenshotCaptureState;
 struct ScreenshotSelectionParams;
 enum class ScreenshotActiveTool;
-enum class ScreenshotIntelligentSelectionTarget;
 
 // Only a border resize retains the recognition window that owns the pointer gesture.
 enum class ScreenshotToolActivationReason { Command, SelectionResize, Reselection };
+
+// Region replacements complete the action that opened this capture. An explicit toolbar
+// command takes over that action and allows its own editing UI before dispatch.
+enum class ScreenshotSelectionIntent { PreserveLaunchAction, SupersedeWithCommand };
 
 struct ScreenshotOverlayInputActions {
     std::function<bool(const QPoint& physicalPoint)> returnToIntelligentSelection =
@@ -113,8 +116,6 @@ struct ScreenshotOverlayInputActions {
 
     // Keep new actions at the end so positional test and application initializers remain valid.
     std::function<bool()> physicalCursorMovementAvailable = []() { return false; };
-    std::function<void(ScreenshotIntelligentSelectionTarget)> persistSelectionTarget =
-        [](ScreenshotIntelligentSelectionTarget) {};
     std::function<bool()> recaptureAvailable = []() { return false; };
     std::function<bool()> cancelCaptureViaShortcut = []() { return false; };
     std::function<void(const QPoint&, quint32)> requestUiSelectorHitTestOnDisplay;
@@ -124,9 +125,10 @@ struct ScreenshotOverlayInputActions {
     std::function<bool(const QString&)> canActivateDrawingShortcut = [](const QString&) {
         return true;
     };
-    // Suppress automatic tool restoration and pending quick actions before an
-    // explicit command confirms the selection and shows the toolbar.
-    std::function<void()> prepareExplicitSelectionCommand = []() {};
+    // Apply intent before changing the region or dispatching the command. This callback
+    // owns launch-action and toolbar policy; the handler owns synchronous confirmation.
+    std::function<void(ScreenshotSelectionIntent)> prepareSelection =
+        [](ScreenshotSelectionIntent) {};
     std::function<bool()> toggleGuidesForCurrentSession = []() { return false; };
     std::function<bool()> cursorVisibilityAvailable = [] { return false; };
     std::function<bool()> toggleCursorVisibility = [] { return false; };
@@ -160,6 +162,9 @@ class ScreenshotOverlayInputHandler final {
   public:
     explicit ScreenshotOverlayInputHandler(ScreenshotOverlayInputHandlerContext context);
     ~ScreenshotOverlayInputHandler();
+    // Selection replacement must wait for the current input owner, including the gaps
+    // between draft clicks and an external gesture whose first frame has not arrived yet.
+    [[nodiscard]] bool selectionTransactionActive() const;
     bool effectDragActive() const;
     bool cancelEffectDrag();
     void leaveEffectEditors();
@@ -204,7 +209,7 @@ class ScreenshotOverlayInputHandler final {
     bool cycleRegionType(bool reverse);
     bool removeRegionVertex();
     bool customRegionInputActive() const;
-    void handleUnhandledMiddleClick();
+    void handleUnhandledMiddleClick(ScreenshotOverlayWindow* overlay, const QPointF& localPosition);
     [[nodiscard]] bool handleWheel(ScreenshotOverlayWindow* overlay, const QWheelEvent& event);
     [[nodiscard]] bool shouldBlockUnhandledKeyInput() const;
     [[nodiscard]] bool activateMoveEntireSelectionShortcut();
@@ -236,7 +241,8 @@ class ScreenshotOverlayInputHandler final {
     void finishEffectDrag(ScreenshotOverlayWindow* overlay, const QPointF& localPosition);
     QPointer<QWidget> m_effectMouseGrab;
     bool m_consumeEffectRelease = false;
-    void executeConfiguredCompletionAction(const QString& action);
+    void executeConfiguredCompletionAction(const QString& action,
+                                           std::optional<QPointF> middleClickPosition);
     void beginSelectionDrag(ScreenshotOverlayWindow* overlay, const QPointF& virtualPosition,
                             ScreenshotSelectionDragMode dragMode,
                             const std::optional<QPointF>& latestEnd = std::nullopt);

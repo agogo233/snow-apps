@@ -93,6 +93,7 @@ pub(crate) struct UiState {
     pub(crate) marquee: Option<RectangleData>,
     pub(crate) snap_guides: Vec<SnapGuide>,
     pub(crate) hovered_element: Option<ElementId>,
+    pub(crate) hovered_arrow_handle: Option<ArrowHitTarget>,
     pub(crate) free_draw_hover_position: Option<Point<f64>>,
 }
 
@@ -113,6 +114,8 @@ pub(crate) enum ArrowCreationPhase {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub(crate) struct CreateArrowState {
+    /// A sequence-number gesture always finishes on release and keeps this tail binding.
+    pub(crate) serial_number_source: Option<ElementId>,
     pub(crate) stroke_rendering_seed: u32,
     pub(crate) pointer_id: u32,
     pub(crate) committed_points: Vec<Point<f64>>,
@@ -151,6 +154,13 @@ pub(crate) struct CreatePenFilterState {
     pub(crate) straight_endpoint: Option<Point<f64>>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum SerialNumberDragMode {
+    Text,
+    NewArrow,
+    ExistingArrow,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct CreateSerialNumberState {
     pub(crate) pointer_id: u32,
@@ -158,6 +168,7 @@ pub(crate) struct CreateSerialNumberState {
     pub(crate) start_view_position: Point<f64>,
     pub(crate) text: Option<(ElementId, TextData)>,
     pub(crate) label_measured: bool,
+    pub(crate) mode: SerialNumberDragMode,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -338,6 +349,7 @@ pub(crate) enum CanvasHit {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum PrimaryPointerIntent {
+    BeginSerialNumberArrow { id: ElementId },
     BeginMagnifierLens { id: ElementId },
     ToggleSelection { id: ElementId },
     BeginSelectionInteraction { target: SelectionHitTarget },
@@ -517,6 +529,7 @@ pub(crate) struct EditorState {
     pub(crate) active_tool: ActiveTool,
     pub(crate) selection: SelectionState,
     pub(crate) creation_preview: Option<ElementCreationPreview>,
+    pub(crate) creation_colors: Option<crate::creation_colors::CreationColors>,
     pub(crate) ui: UiState,
     pub(crate) interaction: InteractionState,
     pub(crate) active_text_draft: Option<ActiveTextDraftPresentation>,
@@ -645,6 +658,7 @@ impl EditorState {
             active_tool: ActiveTool::default(),
             selection: SelectionState::default(),
             creation_preview: None,
+            creation_colors: None,
             ui: UiState::default(),
             interaction: InteractionState::default(),
             active_text_draft: None,

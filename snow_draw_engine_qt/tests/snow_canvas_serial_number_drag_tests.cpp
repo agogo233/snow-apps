@@ -23,8 +23,8 @@ void require(bool condition, const char* message) {
 }
 
 void mouse(SnowCanvasWidget& canvas, QEvent::Type type, QPointF point, Qt::MouseButton button,
-           Qt::MouseButtons buttons) {
-    QMouseEvent event(type, point, point, point, button, buttons, Qt::NoModifier);
+           Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers = Qt::NoModifier) {
+    QMouseEvent event(type, point, point, point, button, buttons, modifiers);
     QApplication::sendEvent(&canvas, &event);
 }
 
@@ -59,6 +59,104 @@ QJsonObject payload(const SnowCanvasRuntime& runtime, const QString& kind) {
     const auto found = records(runtime, kind);
     require(found.size() == 1, "expected one record of the requested kind");
     return found.first().toObject().value(QStringLiteral("data")).toObject().value(kind).toObject();
+}
+
+void shiftDragCreatesBoundArrow() {
+    for (const bool existing : {false, true}) {
+        SnowCanvasRuntime runtime;
+        SnowCanvasWidget canvas(runtime);
+        canvas.resize(600, 360);
+        canvas.show();
+        QApplication::processEvents();
+        require(canvas.setCanvasTool(SnowCanvasTool::SerialNumber), "activate sequence tool");
+        const QPointF start(150.0, 180.0);
+        if (existing) {
+            mouse(canvas, QEvent::MouseButtonPress, start, Qt::LeftButton, Qt::LeftButton);
+            mouse(canvas, QEvent::MouseButtonRelease, start, Qt::LeftButton, Qt::NoButton);
+        }
+        mouse(canvas, QEvent::MouseButtonPress, start, Qt::LeftButton, Qt::LeftButton,
+              Qt::ShiftModifier);
+        const auto serial = payload(runtime, QStringLiteral("SerialNumber"));
+        const auto serialId = records(runtime, QStringLiteral("SerialNumber"))
+                                  .first()
+                                  .toObject()
+                                  .value(QStringLiteral("id"))
+                                  .toObject();
+        const QByteArray history = runtime.serializeDocumentHistory();
+        if (!existing) {
+            mouse(canvas, QEvent::MouseMove, {300.0, 180.0}, Qt::NoButton, Qt::LeftButton,
+                  Qt::ShiftModifier);
+            require(runtime.serializeDocumentHistory() == history,
+                    "arrow preview does not create history entries");
+        }
+        const QPointF finish(400.0, 223.0);
+        // Releasing Shift gives the tip a free angle, including a coalesced drag.
+        mouse(canvas, QEvent::MouseButtonRelease, finish, Qt::LeftButton, Qt::NoButton);
+        const auto arrow = payload(runtime, QStringLiteral("Arrow"));
+        require(arrow.value(QStringLiteral("start_binding"))
+                        .toObject()
+                        .value(QStringLiteral("element_id"))
+                        .toObject() == serialId,
+                "arrow tail binds to the source sequence number");
+        const auto binding = arrow.value(QStringLiteral("start_binding")).toObject();
+        require(binding.value(QStringLiteral("mode")).toString() == QStringLiteral("orbit"),
+                "sequence arrow uses exterior orbit binding");
+        const auto focus = binding.value(QStringLiteral("fixed_point")).toArray();
+        require(focus.size() == 2 && focus.at(0).toDouble() == 0.5 && focus.at(1).toDouble() == 0.5,
+                "exterior arrow tail aims at the sequence number center");
+        const auto center = serial.value(QStringLiteral("center")).toObject();
+        const QPointF offset(arrow.value(QStringLiteral("x")).toDouble() -
+                                 center.value(QStringLiteral("x")).toDouble(),
+                             arrow.value(QStringLiteral("y")).toDouble() -
+                                 center.value(QStringLiteral("y")).toDouble());
+        require(qMax(qAbs(offset.x()), qAbs(offset.y())) >
+                    serial.value(QStringLiteral("diameter")).toDouble() / 2.0,
+                "arrow tail remains outside the badge");
+        const auto points = arrow.value(QStringLiteral("points")).toArray();
+        const auto tip = points.last().toArray();
+        const QPointF expected = canvas.canvasToViewTransform().inverted().map(finish);
+        require(qAbs(arrow.value(QStringLiteral("x")).toDouble() + tip.at(0).toDouble() -
+                     expected.x()) < 0.001 &&
+                    qAbs(arrow.value(QStringLiteral("y")).toDouble() + tip.at(1).toDouble() -
+                         expected.y()) < 0.001,
+                "arrow endpoint uses the final mouse release position");
+        require(records(runtime, QStringLiteral("Text")).isEmpty() &&
+                    !canvas.hasActiveTextEditing(),
+                "Shift-drag does not create or edit a text label");
+        require(payload(runtime, QStringLiteral("SerialNumber")) == serial,
+                "bound-arrow creation leaves the badge unchanged");
+
+        const auto arrowId = records(runtime, QStringLiteral("Arrow"))
+                                 .first()
+                                 .toObject()
+                                 .value(QStringLiteral("id"));
+        const QPointF shaft = (start + finish) / 2.0;
+        for (const auto button : {Qt::LeftButton, Qt::RightButton}) {
+            require(canvas.hasQuickSelectionTargetAt(shaft, button),
+                    "sequence tool recognizes the bound arrow shaft as a selection target");
+            mouse(canvas, QEvent::MouseButtonPress, shaft, button, button);
+            mouse(canvas, QEvent::MouseButtonRelease, shaft, button, Qt::NoButton);
+            require(runtime.selectedElementIds() == QJsonArray{arrowId} &&
+                        canvas.canvasTool() == SnowCanvasTool::SerialNumber &&
+                        canvas.canvasStyleToolbarState().source ==
+                            SnowCanvasStyleToolbarSource::SelectedArrow,
+                    "click selects the arrow and exposes its controls in the sequence tool");
+            mouse(canvas, QEvent::MouseButtonPress, shaft, button, button, Qt::ShiftModifier);
+            mouse(canvas, QEvent::MouseButtonRelease, shaft, button, Qt::NoButton,
+                  Qt::ShiftModifier);
+            require(runtime.selectedElementIds().isEmpty(), "Shift-click deselects the arrow");
+        }
+
+        require(runtime.undo() && records(runtime, QStringLiteral("Arrow")).isEmpty() &&
+                    records(runtime, QStringLiteral("SerialNumber")).size() == 1,
+                "one undo removes only the arrow");
+        require(runtime.redo() && payload(runtime, QStringLiteral("Arrow")) == arrow,
+                "redo restores the bound arrow");
+        SnowCanvasRuntime restored;
+        require(restored.restoreDocumentSession(runtime.serializeDocumentSession()) &&
+                    payload(restored, QStringLiteral("Arrow")) == arrow,
+                "session round trip preserves the arrow binding");
+    }
 }
 
 void numericTypeReachesExportAndSurvivesHistory() {
@@ -114,6 +212,52 @@ void numericTypeReachesExportAndSurvivesHistory() {
     expectedSerial.insert(QStringLiteral("number"), 27);
     require(payload(runtime, QStringLiteral("SerialNumber")) == expectedSerial,
             "decreasing the number preserves badge geometry and font size");
+}
+
+void keyboardDeletionRenumbersSequenceInOneHistoryEntry() {
+    for (const int deleteKey : {Qt::Key_Delete, Qt::Key_Backspace}) {
+        SnowCanvasRuntime runtime;
+        SnowCanvasWidget canvas(runtime);
+        canvas.resize(600, 360);
+        canvas.show();
+        QApplication::processEvents();
+        require(canvas.setCanvasTool(SnowCanvasTool::SerialNumber), "activate sequence creation");
+        for (int index = 0; index < 5; ++index) {
+            const QPointF point(60.0 + index * 110.0, 120.0);
+            mouse(canvas, QEvent::MouseButtonPress, point, Qt::LeftButton, Qt::LeftButton);
+            mouse(canvas, QEvent::MouseButtonRelease, point, Qt::LeftButton, Qt::NoButton);
+        }
+        const auto originalRecords = records(runtime, QStringLiteral("SerialNumber"));
+        require(originalRecords.size() == 5, "create five consecutive sequence annotations");
+        require(canvas.setCanvasTool(SnowCanvasTool::Select), "activate sequence selection");
+        mouse(canvas, QEvent::MouseButtonPress, {280.0, 120.0}, Qt::LeftButton, Qt::LeftButton);
+        mouse(canvas, QEvent::MouseButtonRelease, {280.0, 120.0}, Qt::LeftButton, Qt::NoButton);
+        require(canvas.canvasStyleToolbarState().serialNumberStyle.number == 3,
+                "select the third sequence annotation");
+        key(canvas, deleteKey);
+
+        const auto deletedRecords = records(runtime, QStringLiteral("SerialNumber"));
+        require(deletedRecords.size() == 4, "keyboard deletion removes one annotation");
+        for (int index = 0; index < 4; ++index) {
+            auto expected = originalRecords.at(index < 2 ? index : index + 1).toObject();
+            auto data = expected.value(QStringLiteral("data")).toObject();
+            auto serial = data.value(QStringLiteral("SerialNumber")).toObject();
+            serial.insert(QStringLiteral("number"), index + 1);
+            data.insert(QStringLiteral("SerialNumber"), serial);
+            expected.insert(QStringLiteral("data"), data);
+            require(deletedRecords.at(index).toObject() == expected,
+                    "deletion closes the sequence gap and preserves each surviving badge");
+        }
+        require(runtime.undo(), "undo deletion and renumbering together");
+        require(records(runtime, QStringLiteral("SerialNumber")) == originalRecords,
+                "one undo restores all five original annotations");
+        require(runtime.redo(), "redo deletion and renumbering together");
+        require(records(runtime, QStringLiteral("SerialNumber")) == deletedRecords,
+                "one redo restores the compacted sequence");
+        require(canvas.setCanvasTool(SnowCanvasTool::SerialNumber), "resume sequence creation");
+        require(canvas.canvasStyleToolbarState().serialNumberStyle.number == 5,
+                "the next annotation follows the compacted sequence");
+    }
 }
 
 void clickAndDragLifecycle() {
@@ -433,7 +577,19 @@ int main(int argc, char** argv) {
     }
 #endif
     QApplication app(argc, argv);
+    if (app.arguments().contains(QStringLiteral("--sequence-deletion-only"))) {
+        keyboardDeletionRenumbersSequenceInOneHistoryEntry();
+        return 0;
+    }
+    if (app.arguments().contains(QStringLiteral("--creation-only"))) {
+        shiftDragCreatesBoundArrow();
+        clickAndDragLifecycle();
+        releaseWithoutMoveAndCancellation();
+        return 0;
+    }
     numericTypeReachesExportAndSurvivesHistory();
+    shiftDragCreatesBoundArrow();
+    keyboardDeletionRenumbersSequenceInOneHistoryEntry();
     clickAndDragLifecycle();
     releaseWithoutMoveAndCancellation();
     toolbarCreatedTextKeepsDefaultStyling();

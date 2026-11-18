@@ -164,7 +164,7 @@
           "ClearPinnedHistory",
           "ClearThumbnailCache",
           "ClearRecordingTemp",
-          "CopyTodayLog",
+          "ExportLogs",
           "ExportConfiguration",
           "ImportConfiguration"
         ]
@@ -369,6 +369,9 @@
             "type": "boolean"
           },
           "capture_toolbar": {
+            "type": "boolean"
+          },
+          "follow_mouse": {
             "type": "boolean"
           },
           "show_cursor": {

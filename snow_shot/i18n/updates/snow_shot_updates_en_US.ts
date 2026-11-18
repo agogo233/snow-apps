@@ -340,6 +340,10 @@
             <translation>The release must contain all five Windows packages</translation>
         </message>
         <message>
+            <source>The selected files exceed the update restart limit</source>
+            <translation>The selected files exceed the update restart limit</translation>
+        </message>
+        <message>
             <source>The server changed an already published release</source>
             <translation>The server changed an already published release</translation>
         </message>
@@ -542,8 +546,12 @@
     <context>
         <name>UpdateService</name>
         <message>
-            <source>Could not check for updates. Please try again</source>
-            <translation>Could not check for updates. Please try again</translation>
+            <source>Automatic updates are not configured for this copy</source>
+            <translation>Automatic updates are not configured for this copy</translation>
+        </message>
+        <message>
+            <source>Could not update the application. Please try again</source>
+            <translation>Could not update the application. Please try again</translation>
         </message>
     </context>
 </TS>

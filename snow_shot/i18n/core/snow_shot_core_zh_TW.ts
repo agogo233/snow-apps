@@ -102,14 +102,6 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <translation>交流與答疑 · 群號 %1</translation>
         </message>
         <message>
-            <source>Download from GitHub</source>
-            <translation>從 GitHub 下載</translation>
-        </message>
-        <message>
-            <source>Download from Gitee</source>
-            <translation>從 Gitee 下載</translation>
-        </message>
-        <message>
             <source>Download update</source>
             <translation>下載更新</translation>
         </message>
@@ -182,8 +174,8 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <translation>隱私權政策</translation>
         </message>
         <message>
-            <source>QQ group 3</source>
-            <translation>QQ 群組 3</translation>
+            <source>QQ group 4</source>
+            <translation>QQ 群組 4</translation>
         </message>
         <message>
             <source>Ready to install %1</source>
@@ -234,6 +226,14 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <translation>無法使用</translation>
         </message>
         <message>
+            <source>Update %1 is ready. It will install after you quit and be available on your next launch</source>
+            <translation>更新 %1 已就緒。結束應用程式後將進行安裝，下次啟動時即可使用</translation>
+        </message>
+        <message>
+            <source>Update %1 will install when you quit</source>
+            <translation>更新 %1 將在結束應用程式時安裝</translation>
+        </message>
+        <message>
             <source>Update available: %1</source>
             <translation>發現新版本：%1</translation>
         </message>
@@ -250,12 +250,20 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <translation>更新由 Microsoft Store 管理</translation>
         </message>
         <message>
+            <source>User agreement</source>
+            <translation>使用者協議</translation>
+        </message>
+        <message>
             <source>Verifying update…</source>
             <translation>正在驗證更新…</translation>
         </message>
         <message>
             <source>View the source and improve it together</source>
             <translation>查看原始碼，一起改進</translation>
+        </message>
+        <message>
+            <source>View update details</source>
+            <translation>檢視更新詳細資訊</translation>
         </message>
         <message>
             <source>You are up to date</source>
@@ -319,6 +327,10 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <source>Scale: %1%</source>
             <translation>縮放：%1%</translation>
         </message>
+        <message>
+            <source>Thinking…</source>
+            <translation>思考中…</translation>
+        </message>
     </context>
     <context>
         <name>ConfirmationSkipButton</name>
@@ -329,6 +341,10 @@ so every moment on screen can be expressed clearly and shared easily</source>
     </context>
     <context>
         <name>DiagnosticsService</name>
+        <message>
+            <source>A diagnostics file could not be read</source>
+            <translation>無法讀取診斷檔案</translation>
+        </message>
         <message>
             <source>A log file could not be read</source>
             <translation>無法讀取記錄檔</translation>
@@ -366,6 +382,14 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <translation>無法初始化本機當機資料庫</translation>
         </message>
         <message>
+            <source>The log archive could not be saved</source>
+            <translation>無法儲存記錄壓縮檔</translation>
+        </message>
+        <message>
+            <source>The log archive directory could not be created</source>
+            <translation>無法建立記錄壓縮檔目錄</translation>
+        </message>
+        <message>
             <source>The log directory is not writable</source>
             <translation>無法寫入記錄目錄</translation>
         </message>
@@ -384,6 +408,10 @@ so every moment on screen can be expressed clearly and shared easily</source>
         <message>
             <source>The preferred log directory is unavailable; a fallback is in use</source>
             <translation>首選記錄目錄無法使用，目前使用備用目錄</translation>
+        </message>
+        <message>
+            <source>There is not enough space for a log archive</source>
+            <translation>沒有足夠的空間儲存記錄壓縮檔</translation>
         </message>
         <message>
             <source>There is not enough space for a log snapshot</source>
@@ -420,6 +448,14 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <translation>自訂工具列</translation>
         </message>
         <message>
+            <source>Edit selected images</source>
+            <translation>編輯選取的影像</translation>
+        </message>
+        <message>
+            <source>Full-screen canvas</source>
+            <translation>全螢幕畫布</translation>
+        </message>
+        <message>
             <source>Hide during screenshots</source>
             <translation>截圖時隱藏</translation>
         </message>
@@ -448,8 +484,20 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <translation>截圖</translation>
         </message>
         <message>
+            <source>Screenshot history</source>
+            <translation>截圖歷史</translation>
+        </message>
+        <message>
             <source>Show toolbar</source>
             <translation>顯示工具列</translation>
+        </message>
+        <message>
+            <source>Split selected images</source>
+            <translation>分割選取的影像</translation>
+        </message>
+        <message>
+            <source>Stitch selected images</source>
+            <translation>拼接選取的影像</translation>
         </message>
         <message>
             <source>Toolbar mode</source>
@@ -648,6 +696,14 @@ so every moment on screen can be expressed clearly and shared easily</source>
     <context>
         <name>SnowShotApiClient</name>
         <message>
+            <source>Document recognition request timed out</source>
+            <translation>文件辨識請求逾時</translation>
+        </message>
+        <message>
+            <source>Document recognition response is too large</source>
+            <translation>文件辨識結果過大</translation>
+        </message>
+        <message>
             <source>Image conversion failed</source>
             <translation>影像轉換失敗</translation>
         </message>
@@ -682,6 +738,10 @@ so every moment on screen can be expressed clearly and shared easily</source>
         <message>
             <source>Invalid LaTeX recognition response</source>
             <translation>無效的 LaTeX 辨識回應</translation>
+        </message>
+        <message>
+            <source>Invalid document recognition response</source>
+            <translation>文件辨識結果無效</translation>
         </message>
         <message>
             <source>Invalid model stream response</source>
@@ -720,6 +780,18 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <translation>沒有可用的翻譯服務</translation>
         </message>
         <message>
+            <source>Paid calls are paused because your account has an outstanding balance. Settle the balance in Account to continue</source>
+            <translation>帳號有欠款，付費呼叫已暫停。請前往「帳號」結清欠款後繼續</translation>
+        </message>
+        <message>
+            <source>Sign in to your Snow Shot account to use Expert Model</source>
+            <translation>請登入 Snow Shot 帳號以使用專家模型</translation>
+        </message>
+        <message>
+            <source>Sign in to your Snow Shot account to use this service</source>
+            <translation>請登入 Snow Shot 帳號後使用此服務</translation>
+        </message>
+        <message>
             <source>Table recognition failed</source>
             <translation>表格辨識失敗</translation>
         </message>
@@ -734,6 +806,10 @@ so every moment on screen can be expressed clearly and shared easily</source>
         <message>
             <source>Table recognition returned no table</source>
             <translation>表格辨識未傳回表格</translation>
+        </message>
+        <message>
+            <source>The document image could not be encoded</source>
+            <translation>無法編碼文件影像</translation>
         </message>
         <message>
             <source>The image could not be prepared for conversion</source>
@@ -752,6 +828,10 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <translation>影像過大，無法辨識。請選擇較小的區域</translation>
         </message>
         <message>
+            <source>The image is too large. Select a smaller area.</source>
+            <translation>影像過大，請選擇較小的區域。</translation>
+        </message>
+        <message>
             <source>The model response is too large</source>
             <translation>模型回應過大</translation>
         </message>
@@ -768,12 +848,20 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <translation>模型服務已變更。請重試以載入其模型</translation>
         </message>
         <message>
+            <source>The service has reached its usage limit. Try again later</source>
+            <translation>服務已達用量上限，請稍後重試</translation>
+        </message>
+        <message>
             <source>The text is too large to translate</source>
             <translation>文字過長，無法翻譯</translation>
         </message>
         <message>
             <source>The translation response is too large</source>
             <translation>翻譯回應過大</translation>
+        </message>
+        <message>
+            <source>This request requires payment. Check your balance in Account</source>
+            <translation>此請求需要付費，請前往「帳號」查看餘額</translation>
         </message>
         <message>
             <source>This service does not support the selected language combination</source>
@@ -798,6 +886,26 @@ so every moment on screen can be expressed clearly and shared easily</source>
         <message>
             <source>Translation stream ended unexpectedly</source>
             <translation>翻譯串流意外結束</translation>
+        </message>
+        <message>
+            <source>Your Snow Shot session is no longer valid. Sign in again</source>
+            <translation>Snow Shot 登入已失效，請重新登入</translation>
+        </message>
+        <message>
+            <source>Your available credits cannot cover this request. Purchase credits in Account</source>
+            <translation>可用餘額不足以支付本次請求，請前往「帳號」儲值</translation>
+        </message>
+        <message>
+            <source>Your credits are reserved by other calls that are still running. Wait for them to finish and try again</source>
+            <translation>餘額已被其他進行中的呼叫預留，請等待這些呼叫結束後重試</translation>
+        </message>
+        <message>
+            <source>Your credits cannot cover this Expert Model request. Purchase credits from Account to continue</source>
+            <translation>點數不足，無法使用專家模型完成此請求。請前往帳號頁面購買點數後繼續</translation>
+        </message>
+        <message>
+            <source>Your daily free allowance is exhausted. Try again after it resets</source>
+            <translation>今日免費額度已用盡，請在額度重設後重試</translation>
         </message>
     </context>
     <context>
@@ -845,20 +953,12 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <translation>%1 %2 已發布。請開啟「關於」查看更新選項</translation>
         </message>
         <message>
-            <source>%1 will close and restart to install the update. Continue?</source>
-            <translation>%1 將關閉並重新啟動以安裝更新。是否繼續？</translation>
-        </message>
-        <message>
             <source>An update is ready. Open About to restart and update %1</source>
             <translation>更新已就緒。請開啟「關於」重新啟動並更新 %1</translation>
         </message>
         <message>
             <source>An update is ready. Open About to restart and update Snow Shot</source>
             <translation>更新已準備就緒。請開啟「關於」頁面，重新啟動並更新 Snow Shot</translation>
-        </message>
-        <message>
-            <source>Cancel</source>
-            <translation>取消</translation>
         </message>
         <message>
             <source>Could not open the selected file: %1</source>
@@ -869,10 +969,6 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <translation>無法將所選檔案固定到螢幕</translation>
         </message>
         <message>
-            <source>Feature unavailable</source>
-            <translation>功能暫時無法使用</translation>
-        </message>
-        <message>
             <source>Finish capturing, recording, exporting, recognizing text, or updating before changing storage</source>
             <translation>請先完成截圖、錄製、匯出、文字辨識或更新，再變更儲存目錄</translation>
         </message>
@@ -881,20 +977,12 @@ so every moment on screen can be expressed clearly and shared easily</source>
             <translation>請先完成截圖、螢幕錄製或匯出，再進行更新</translation>
         </message>
         <message>
-            <source>Restart and update</source>
-            <translation>重新啟動並更新</translation>
-        </message>
-        <message>
             <source>Restart failed</source>
             <translation>重新啟動失敗</translation>
         </message>
         <message>
             <source>Snow Shot %1 is available. Open About for update options</source>
             <translation>Snow Shot %1 已推出。開啟「關於」查看更新選項</translation>
-        </message>
-        <message>
-            <source>Snow Shot will close and restart to install the update. Continue?</source>
-            <translation>Snow Shot 將關閉並重新啟動以安裝更新。是否繼續？</translation>
         </message>
         <message>
             <source>The selected file path is invalid</source>

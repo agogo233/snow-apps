@@ -18,7 +18,9 @@ inline ScreenshotToolbarLayout defaultFloatingToolbarLayout() {
           QStringLiteral("record-screen"), QStringLiteral("scrolling-screenshot"),
           QStringLiteral("text-recognition")}},
         {QStringLiteral("save-as-file"), QStringLiteral("convert-to-markdown"),
-         QStringLiteral("convert-to-html")}};
+         QStringLiteral("convert-to-html"), QStringLiteral("screenshot-history"),
+         QStringLiteral("global-canvas"), QStringLiteral("stitch-selected-images"),
+         QStringLiteral("split-selected-images"), QStringLiteral("edit-selected-images")}};
     const auto unavailable = [](const QString& id) { return !app::editionActionToolAvailable(id); };
     for (auto& position : layout.positions)
         position.removeIf(unavailable);
@@ -40,6 +42,8 @@ class FloatingToolbarSettings final {
   public:
     [[nodiscard]] bool enabled() const;
     bool setEnabled(bool value) const;
+    [[nodiscard]] QString dropBehavior() const;
+    bool setDropBehavior(const QString& value) const;
     [[nodiscard]] bool toolbarMode() const;
     bool setToolbarMode(bool value) const;
     [[nodiscard]] bool hideInFullscreen() const;

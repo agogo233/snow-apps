@@ -24,6 +24,8 @@ namespace snow_shot::app {
     }
     if (id == QStringLiteral("barcode-recognition"))
         return edition::qrRecognition;
+    if (id == QStringLiteral("document-recognition"))
+        return edition::documentRecognition;
     if (id == QStringLiteral("table-recognition"))
         return edition::tableRecognition;
     if (id == QStringLiteral("latex-recognition"))
@@ -48,6 +50,8 @@ namespace snow_shot::app {
         return edition::imageConversion;
     case 5:
         return edition::latexRecognition;
+    case 6:
+        return edition::documentRecognition;
     default:
         return false;
     }

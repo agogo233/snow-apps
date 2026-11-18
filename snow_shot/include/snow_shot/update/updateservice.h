@@ -6,12 +6,16 @@
 #include <QStringList>
 #include <QUrl>
 #include <chrono>
+#include <functional>
 #include <memory>
 #include <optional>
 
 class QEvent;
 
 namespace snow_shot::update {
+namespace detail {
+class MacOSUpdateDriver;
+}
 enum class UpdateState {
     Unavailable,
     Idle,
@@ -33,8 +37,14 @@ struct UpdateStatus {
     QUrl downloadUrl = {};
 };
 
-// Windows delegates installation to the updater helper. macOS checks releases over HTTPS
-// and leaves package downloads and installation to the selected release host.
+// Supported operations for this platform/distribution and the current update type.
+struct UpdateCapabilities {
+    bool check = false;
+    bool download = false;
+    bool install = false;
+};
+
+// Windows delegates installation to the updater helper; macOS uses Sparkle's installer.
 class UpdateService final : public QObject {
     Q_OBJECT
   public:
@@ -45,14 +55,13 @@ class UpdateService final : public QObject {
         bool allowLocalHttp = false;
         std::chrono::milliseconds startupCheckDelay = std::chrono::seconds(30);
         std::chrono::milliseconds automaticCheckInterval = std::chrono::hours(24);
-        // macOS check transport; overrides also support deterministic local-server tests.
-        QString installedVersion;
-        // Production discovery endpoint; loopback overrides require allowLocalHttp.
+        // Windows helper discovery endpoints, also overridden by its process fixtures.
         QUrl githubApiUrl =
-            QUrl(QStringLiteral("https://api.github.com/repos/mg-chao/snow-apps/releases"));
+            QUrl(QStringLiteral("https://api.github.com/repos/mg-chao/snow-shot/releases"));
         QUrl giteeApiUrl =
             QUrl(QStringLiteral("https://gitee.com/api/v5/repos/mg-chao/snow-apps/releases"));
-        std::chrono::milliseconds requestTimeout = std::chrono::seconds(30);
+        // Native-driver injection keeps policy tests independent of installed applications.
+        std::function<std::unique_ptr<detail::MacOSUpdateDriver>()> macOSDriverFactory;
         // Unset follows the installed distribution. Tests may select the Store policy explicitly.
         std::optional<bool> storeManaged;
     };
@@ -60,8 +69,12 @@ class UpdateService final : public QObject {
     explicit UpdateService(Options options, QObject* parent = nullptr);
     ~UpdateService() override;
     const UpdateStatus& status() const;
+    UpdateCapabilities capabilities() const;
     bool managedByStore() const;
     bool busy() const;
+    bool canCheck() const;
+    bool canCancel() const;
+    bool installsOnQuit() const;
     bool handoffPending() const;
     void start();
     void setMode(const QString& mode);
@@ -76,9 +89,21 @@ class UpdateService final : public QObject {
     // Applies only an update that was already verified and ready before this launch.
     // Does not start network checks, downloads, or the background schedule.
     void applyAtStartup();
-    void setRelaunchArguments(const QStringList& arguments);
+    // Refusal leaves previously accepted intent unchanged. Callers retain their
+    // complete list for normal startup/replay if precommit approval is refused.
+    // Admission closes before handoffCommitted observers can reenter application code.
+    bool setRelaunchArguments(const QStringList& arguments);
+    [[nodiscard]] bool acceptsRelaunchArguments(const QStringList& arguments) const;
     void clearRelaunchArguments();
     void reportBlocked(const QString& reason);
+    // Runs synchronously on this service's thread before input suspension or helper commitment.
+    // A missing handler, expired context, or exception rejects handoff.
+    // Approval may prepare relaunch arguments and report a specific refusal with reportBlocked().
+    void setHandoffApproval(QObject* context, std::function<bool()> approval);
+    // Runs after all synchronous handoffPendingChanged(true) observers have closed admission.
+    // Recheck work/editor state created by those observers before the helper can commit.
+    // Missing/expired/throwing validation refuses handoff and releases pending suspension.
+    void setHandoffValidation(QObject* context, std::function<bool()> validation);
 
   signals:
     void statusChanged();
@@ -86,7 +111,6 @@ class UpdateService final : public QObject {
     void updateReady();
     void automaticUpdateAvailable(const QString& version);
     void restartRequested();
-    void handoffReady();
     void handoffPendingChanged(bool pending);
     void handoffCommitted();
 

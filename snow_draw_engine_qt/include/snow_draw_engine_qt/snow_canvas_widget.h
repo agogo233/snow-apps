@@ -65,6 +65,7 @@ class SnowCanvasWidget : public QWidget {
     bool applyStyleEdit(const SnowCanvasStyleEdit& edit);
     // Apply explicit user intent and publish it only on success.
     bool commitStyleEdit(const SnowCanvasStyleEdit& edit);
+    bool setSharedCreationColor(const std::optional<QColor>& color);
     bool stepFontSize(int direction);
     SnowCanvasStyleToolbarState canvasStyleToolbarState() const;
     SnowCanvasSerialNumberToolbarState serialNumberToolbarState() const;
@@ -239,7 +240,7 @@ class SnowCanvasWidget : public QWidget {
     void freeDrawMoveBatchProcessed(quint32 inputCount, quint32 dispatchedCount);
     void eraserMoveFrameProcessed();
     void unhandledLeftDoubleClick();
-    void unhandledMiddleClick();
+    void unhandledMiddleClick(const QPointF& position);
     void showDirtyRectsChanged();
 
   protected:

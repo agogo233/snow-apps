@@ -276,6 +276,13 @@ Copy-LicenseNotice -Category "project-notices" -Package "snow-shot-attributions"
     -RelativeName "THIRD_PARTY_NOTICES.md"
 
 if (-not $StandaloneMedia) {
+    if ($CargoTarget.EndsWith('-apple-darwin', [StringComparison]::Ordinal)) {
+        foreach ($notice in @('LICENSE', 'SOURCE.md')) {
+            Copy-LicenseNotice -Category 'source' -Package 'sparkle-2.10.1' `
+                -DeclaredLicense 'MIT and bundled component notices' `
+                -Source (Join-Path $PSScriptRoot "../licenses/sparkle/$notice") -RelativeName $notice
+        }
+    }
     $microTexLicenseRoot = Join-Path $PSScriptRoot "../licenses/microtex"
     $microTexNotices = [ordered]@{
         "LICENSE-MIT.txt" = "MIT"
@@ -292,6 +299,15 @@ if (-not $StandaloneMedia) {
             -Description "MicroTeX source/font notice" -PathType Leaf
         Copy-LicenseNotice -Category "source" -Package "microtex-0e3707f6" `
             -DeclaredLicense $notice.Value -Source $noticePath -RelativeName $notice.Key
+    }
+    if ($CargoTarget.EndsWith('-windows-msvc', [StringComparison]::Ordinal)) {
+        $lzmaNoticeRoot = Join-Path $PSScriptRoot '../licenses/lzma-sdk'
+        foreach ($notice in @('LICENSE.txt', 'SOURCE.md')) {
+            $noticePath = Resolve-ExistingPath -Path (Join-Path $lzmaNoticeRoot $notice) `
+                -Description 'LZMA SDK installer decoder notice' -PathType Leaf
+            Copy-LicenseNotice -Category 'source' -Package 'lzma-sdk-26.05' `
+                -DeclaredLicense 'LicenseRef-Public-Domain' -Source $noticePath -RelativeName $notice
+        }
     }
 }
 

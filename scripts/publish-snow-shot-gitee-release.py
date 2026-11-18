@@ -18,6 +18,7 @@ from urllib.parse import urlencode
 from urllib.request import urlopen
 
 
+GITHUB_REPOSITORY = "mg-chao/snow-shot"
 GITEE_REPOSITORY = "mg-chao/snow-apps"
 GITEE_API = f"https://gitee.com/api/v5/repos/{GITEE_REPOSITORY}/releases"
 GITEE_GIT = f"https://gitee.com/{GITEE_REPOSITORY}.git"
@@ -93,7 +94,7 @@ def release_marker(tag: str, commit: str, directory: Path) -> str:
     """Create a deterministic root commit without application source or history."""
     run("git", "init", "--bare", "--quiet", "--object-format=sha1", str(directory))
     record = json.dumps({"schema": 1, "tag": tag, "sourceCommit": commit,
-                         "sourceRepository": f"https://github.com/{GITEE_REPOSITORY}"},
+                         "sourceRepository": f"https://github.com/{GITHUB_REPOSITORY}"},
                         sort_keys=True, indent=2) + "\n"
     blob = subprocess.check_output(("git", "-C", str(directory), "hash-object", "-w", "--stdin"),
                                    input=record.encode('utf-8')).decode('ascii').strip()
@@ -509,6 +510,19 @@ def verify_local_release(release: dict, assets: dict[str, Path], auditor: Path,
         raise ValueError("Local release tag differs from audited source commit")
 
 
+def publish_sparkle_feeds(release, token, username, verify_only=False):
+    paths = release.get('sparkleReports', [])
+    if not paths:
+        return
+    spec = importlib.util.spec_from_file_location('sparkle_publisher', Path(__file__).with_name('publish-snow-shot-sparkle.py'))
+    publisher = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(publisher)
+    key = json.loads((Path(__file__).resolve().parents[1] / 'snow_shot/packaging/macos/sparkle.json').read_text())['publicKey']
+    reports = [publisher.validate_report(json.loads(Path(path).read_text()),
+               Path(str(path).removesuffix('.sparkle.json') + '.dmg'), key) for path in paths]
+    publisher.publish('gitee', reports, token, username, verify_only)
+
+
 def publish(release: dict, assets: dict[str, Path], token: str, username: str,
             verify_only: bool = False) -> None:
     local = assets
@@ -587,6 +601,7 @@ def publish(release: dict, assets: dict[str, Path], token: str, username: str,
                 set(assets) - set(final_names)):
             raise ValueError("Final Gitee asset listing differs from local release")
         local_assets(release)
+        publish_sparkle_feeds(release, token, username, verify_only)
         if not verify_only:
             prune_excluded_attachments(release_id, tag, final_files, local, assets, token)
             remaining = attachments(release_id, token)

@@ -2,6 +2,344 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US" sourcelanguage="en_US">
     <context>
+        <name>AccountPageWidget</name>
+        <message>
+            <source>3–32 letters, numbers, _, . or -</source>
+            <translation>3–32 letters, numbers, _, . or -</translation>
+        </message>
+        <message>
+            <source>8–16 characters</source>
+            <translation>8–16 characters</translation>
+        </message>
+        <message>
+            <source>Account</source>
+            <translation>Account</translation>
+        </message>
+        <message>
+            <source>Account linked</source>
+            <translation>Account linked</translation>
+        </message>
+        <message>
+            <source>Account transactions</source>
+            <translation>Account transactions</translation>
+        </message>
+        <message>
+            <source>Activate %1</source>
+            <translation>Activate %1</translation>
+        </message>
+        <message>
+            <source>Already have an account? Sign in</source>
+            <translation>Already have an account? Sign in</translation>
+        </message>
+        <message>
+            <source>Available credits</source>
+            <translation>Available credits</translation>
+        </message>
+        <message>
+            <source>Cancel</source>
+            <translation>Cancel</translation>
+        </message>
+        <message>
+            <source>Cancel payment</source>
+            <translation>Cancel payment</translation>
+        </message>
+        <message>
+            <source>Code valid for %1:%2 · Valid until %3</source>
+            <translation>Code valid for %1:%2 · Valid until %3</translation>
+        </message>
+        <message>
+            <source>Completed</source>
+            <translation>Completed</translation>
+        </message>
+        <message>
+            <source>Confirm password</source>
+            <translation>Confirm password</translation>
+        </message>
+        <message>
+            <source>Confirming payment</source>
+            <translation>Confirming payment</translation>
+        </message>
+        <message>
+            <source>Continue</source>
+            <translation>Continue</translation>
+        </message>
+        <message>
+            <source>Create an account</source>
+            <translation>Create an account</translation>
+        </message>
+        <message>
+            <source>Create your account</source>
+            <translation>Create your account</translation>
+        </message>
+        <message>
+            <source>Credits</source>
+            <translation>Credits</translation>
+        </message>
+        <message>
+            <source>Date</source>
+            <translation>Date</translation>
+        </message>
+        <message>
+            <source>Dismiss</source>
+            <translation>Dismiss</translation>
+        </message>
+        <message>
+            <source>Failed</source>
+            <translation>Failed</translation>
+        </message>
+        <message>
+            <source>I have read and agree to the %1 and %2</source>
+            <translation>I have read and agree to the %1 and %2</translation>
+        </message>
+        <message>
+            <source>I've paid</source>
+            <translation>I've paid</translation>
+        </message>
+        <message>
+            <source>Image code</source>
+            <translation>Image code</translation>
+        </message>
+        <message>
+            <source>Load more</source>
+            <translation>Load more</translation>
+        </message>
+        <message>
+            <source>Manage and view account data</source>
+            <translation>Manage and view account data</translation>
+        </message>
+        <message>
+            <source>No transactions yet</source>
+            <translation>No transactions yet</translation>
+        </message>
+        <message>
+            <source>Order ID: %1</source>
+            <translation>Order ID: %1</translation>
+        </message>
+        <message>
+            <source>Outstanding balance: %1</source>
+            <translation>Outstanding balance: %1</translation>
+        </message>
+        <message>
+            <source>Paid calls are paused. Your free allowance remains available. New purchases pay this balance first</source>
+            <translation>Paid calls are paused. Your free allowance remains available. New purchases pay this balance first</translation>
+        </message>
+        <message>
+            <source>Password</source>
+            <translation>Password</translation>
+        </message>
+        <message>
+            <source>Payment confirmation continues after the code's original expiry</source>
+            <translation>Payment confirmation continues after the code's original expiry</translation>
+        </message>
+        <message>
+            <source>Payment failed or the order was closed</source>
+            <translation>Payment failed or the order was closed</translation>
+        </message>
+        <message>
+            <source>Payment received</source>
+            <translation>Payment received</translation>
+        </message>
+        <message>
+            <source>Payment refunded</source>
+            <translation>Payment refunded</translation>
+        </message>
+        <message>
+            <source>Payment status unavailable</source>
+            <translation>Payment status unavailable</translation>
+        </message>
+        <message>
+            <source>Pending</source>
+            <translation>Pending</translation>
+        </message>
+        <message>
+            <source>Previous registration orders</source>
+            <translation>Previous registration orders</translation>
+        </message>
+        <message>
+            <source>Privacy policy</source>
+            <translation>Privacy policy</translation>
+        </message>
+        <message>
+            <source>Processing</source>
+            <translation>Processing</translation>
+        </message>
+        <message>
+            <source>Purchase credits</source>
+            <translation>Purchase credits</translation>
+        </message>
+        <message>
+            <source>Purchase credits for %1</source>
+            <translation>Purchase credits for %1</translation>
+        </message>
+        <message>
+            <source>Purchases are currently unavailable. Your account and transaction records are still available</source>
+            <translation>Purchases are currently unavailable. Your account and transaction records are still available</translation>
+        </message>
+        <message>
+            <source>Refresh</source>
+            <translation>Refresh</translation>
+        </message>
+        <message>
+            <source>Refresh code</source>
+            <translation>Refresh code</translation>
+        </message>
+        <message>
+            <source>Refund</source>
+            <translation>Refund</translation>
+        </message>
+        <message>
+            <source>Register and continue</source>
+            <translation>Register and continue</translation>
+        </message>
+        <message>
+            <source>Registration image code</source>
+            <translation>Registration image code</translation>
+        </message>
+        <message>
+            <source>Return to registration and generate a new code. Your previous order records are retained</source>
+            <translation>Return to registration and generate a new code. Your previous order records are retained</translation>
+        </message>
+        <message>
+            <source>Scan this Mini Program code with WeChat</source>
+            <translation>Scan this Mini Program code with WeChat</translation>
+        </message>
+        <message>
+            <source>Scan with your own WeChat account. An existing temporary account will be linked and signed in automatically using these desktop credentials. Otherwise, select a package and confirm your order. The WeChat link cannot be changed</source>
+            <translation>Scan with your own WeChat account. An existing temporary account will be linked and signed in automatically using these desktop credentials. Otherwise, select a package and confirm your order. The WeChat link cannot be changed</translation>
+        </message>
+        <message>
+            <source>Sign in</source>
+            <translation>Sign in</translation>
+        </message>
+        <message>
+            <source>Sign in to Snow Shot</source>
+            <translation>Sign in to Snow Shot</translation>
+        </message>
+        <message>
+            <source>Sign in to an existing account</source>
+            <translation>Sign in to an existing account</translation>
+        </message>
+        <message>
+            <source>Sign out</source>
+            <translation>Sign out</translation>
+        </message>
+        <message>
+            <source>Status</source>
+            <translation>Status</translation>
+        </message>
+        <message>
+            <source>The account service is unavailable</source>
+            <translation>The account service is unavailable</translation>
+        </message>
+        <message>
+            <source>The payment result is still being checked</source>
+            <translation>The payment result is still being checked</translation>
+        </message>
+        <message>
+            <source>This purchase code has expired</source>
+            <translation>This purchase code has expired</translation>
+        </message>
+        <message>
+            <source>Top-up</source>
+            <translation>Top-up</translation>
+        </message>
+        <message>
+            <source>Top-ups, usage charges, and refunds</source>
+            <translation>Top-ups, usage charges, and refunds</translation>
+        </message>
+        <message>
+            <source>Top-ups, usage charges, and refunds appear here</source>
+            <translation>Top-ups, usage charges, and refunds appear here</translation>
+        </message>
+        <message>
+            <source>Total top-ups: %1</source>
+            <translation>Total top-ups: %1</translation>
+        </message>
+        <message>
+            <source>Transaction</source>
+            <translation>Transaction</translation>
+        </message>
+        <message>
+            <source>Usage</source>
+            <translation>Usage</translation>
+        </message>
+        <message>
+            <source>User agreement</source>
+            <translation>User agreement</translation>
+        </message>
+        <message>
+            <source>Username</source>
+            <translation>Username</translation>
+        </message>
+        <message>
+            <source>View account benefits</source>
+            <translation>View account benefits</translation>
+        </message>
+        <message>
+            <source>View your balance in the Mini Program with the WeChat account used to pay.</source>
+            <translation>View your balance in the Mini Program with the WeChat account used to pay.</translation>
+        </message>
+        <message>
+            <source>Waiting for payment</source>
+            <translation>Waiting for payment</translation>
+        </message>
+    </context>
+    <context>
+        <name>AccountSessionService</name>
+        <message>
+            <source>Complete your first payment to activate this account</source>
+            <translation>Complete your first payment to activate this account</translation>
+        </message>
+        <message>
+            <source>Payment has not been confirmed. We will keep checking</source>
+            <translation>Payment has not been confirmed. We will keep checking</translation>
+        </message>
+        <message>
+            <source>Purchases are currently unavailable. Please try again later</source>
+            <translation>Purchases are currently unavailable. Please try again later</translation>
+        </message>
+        <message>
+            <source>The image code is incorrect or expired. Refresh it and try again</source>
+            <translation>The image code is incorrect or expired. Refresh it and try again</translation>
+        </message>
+        <message>
+            <source>The passwords do not match</source>
+            <translation>The passwords do not match</translation>
+        </message>
+        <message>
+            <source>The payment result needs confirmation. Your request remains reserved</source>
+            <translation>The payment result needs confirmation. Your request remains reserved</translation>
+        </message>
+        <message>
+            <source>The username or password is incorrect</source>
+            <translation>The username or password is incorrect</translation>
+        </message>
+        <message>
+            <source>This purchase code has expired. Generate a new code to continue</source>
+            <translation>This purchase code has expired. Generate a new code to continue</translation>
+        </message>
+        <message>
+            <source>This purchase must use the WeChat account linked to your Snow Shot account</source>
+            <translation>This purchase must use the WeChat account linked to your Snow Shot account</translation>
+        </message>
+        <message>
+            <source>This username is already taken or temporarily reserved</source>
+            <translation>This username is already taken or temporarily reserved</translation>
+        </message>
+        <message>
+            <source>Too many requests. Wait a moment and try again</source>
+            <translation>Too many requests. Wait a moment and try again</translation>
+        </message>
+        <message>
+            <source>Unable to complete the request. Check your connection and try again</source>
+            <translation>Unable to complete the request. Check your connection and try again</translation>
+        </message>
+        <message>
+            <source>Your session has expired. Sign in again</source>
+            <translation>Your session has expired. Sign in again</translation>
+        </message>
+    </context>
+    <context>
         <name>AdministratorLaunch</name>
         <message>
             <source> Recovery failed: %1</source>
@@ -724,10 +1062,6 @@
     <context>
         <name>LoginItemService</name>
         <message>
-            <source>%1 needs a valid code signature to use launch at login. Reinstall the signed app</source>
-            <translation>%1 needs a valid code signature to use launch at login. Reinstall the signed app</translation>
-        </message>
-        <message>
             <source>A launch-at-login change is already in progress</source>
             <translation>A launch-at-login change is already in progress</translation>
         </message>
@@ -740,24 +1074,8 @@
             <translation>Could not change launch at login: %1</translation>
         </message>
         <message>
-            <source>Could not save launch-at-login initialization. Registration was not changed</source>
-            <translation>Could not save launch-at-login initialization. Registration was not changed</translation>
-        </message>
-        <message>
             <source>Could not save the launch-at-login preference. The displayed macOS status is still current</source>
             <translation>Could not save the launch-at-login preference. The displayed macOS status is still current</translation>
-        </message>
-        <message>
-            <source>Move the signed %1 app to /Applications or ~/Applications to use launch at login</source>
-            <translation>Move the signed %1 app to /Applications or ~/Applications to use launch at login</translation>
-        </message>
-        <message>
-            <source>Move the signed Snow Shot app to /Applications or ~/Applications to use launch at login</source>
-            <translation>Move the signed Snow Shot app to /Applications or ~/Applications to use launch at login</translation>
-        </message>
-        <message>
-            <source>Snow Shot needs a valid code signature to use launch at login. Reinstall the signed app</source>
-            <translation>Snow Shot needs a valid code signature to use launch at login. Reinstall the signed app</translation>
         </message>
         <message>
             <source>macOS did not apply the launch-at-login change. Check Login Items in System Settings</source>
@@ -1014,6 +1332,10 @@
             <translation>Convert to Markdown</translation>
         </message>
         <message>
+            <source>Document recognition</source>
+            <translation>Document recognition</translation>
+        </message>
+        <message>
             <source>Drag tools here to hide them from the screenshot toolbar</source>
             <translation>Drag tools here to hide them from the screenshot toolbar</translation>
         </message>
@@ -1088,6 +1410,10 @@
     </context>
     <context>
         <name>SettingsBackend</name>
+        <message>
+            <source>Another clipboard operation replaced the log export</source>
+            <translation>Another clipboard operation replaced the log export</translation>
+        </message>
         <message>
             <source>Could not restore the Windows context menu preference</source>
             <translation>Could not restore the Windows context menu preference</translation>
@@ -1216,6 +1542,10 @@
             <translation>Accessibility</translation>
         </message>
         <message>
+            <source>Account</source>
+            <translation>Account</translation>
+        </message>
+        <message>
             <source>Accuracy first</source>
             <translation>Accuracy first</translation>
         </message>
@@ -1226,6 +1556,10 @@
         <message>
             <source>Active window</source>
             <translation>Active window</translation>
+        </message>
+        <message>
+            <source>Adaptive guide colors</source>
+            <translation>Adaptive guide colors</translation>
         </message>
         <message>
             <source>Add a mask to highlight text recognition results</source>
@@ -1456,6 +1790,10 @@
             <translation>Automatic disabling</translation>
         </message>
         <message>
+            <source>Automatic disabling in fullscreen windows</source>
+            <translation>Automatic disabling in fullscreen windows</translation>
+        </message>
+        <message>
             <source>Automatic text recognition</source>
             <translation>Automatic text recognition</translation>
         </message>
@@ -1478,6 +1816,10 @@
         <message>
             <source>Automatically select newly created elements</source>
             <translation>Automatically select newly created elements</translation>
+        </message>
+        <message>
+            <source>Automatically start Snow Shot in the background when you log in to your Mac</source>
+            <translation>Automatically start Snow Shot in the background when you log in to your Mac</translation>
         </message>
         <message>
             <source>Autostart</source>
@@ -1584,10 +1926,6 @@
             <translation>Brush highlight</translation>
         </message>
         <message>
-            <source>Cached history thumbnails will be removed and rebuilt on demand</source>
-            <translation>Cached history thumbnails will be removed and rebuilt on demand</translation>
-        </message>
-        <message>
             <source>Cancel</source>
             <translation>Cancel</translation>
         </message>
@@ -1668,10 +2006,6 @@
             <translation>Check automatically</translation>
         </message>
         <message>
-            <source>Check for new versions on GitHub and Gitee</source>
-            <translation>Check for new versions on GitHub and Gitee</translation>
-        </message>
-        <message>
             <source>Child elements</source>
             <translation>Child elements</translation>
         </message>
@@ -1686,6 +2020,10 @@
         <message>
             <source>Choose automatic window or window sub-element selection, or select manually</source>
             <translation>Choose automatic window or window sub-element selection, or select manually</translation>
+        </message>
+        <message>
+            <source>Choose how Windows throttles the application's execution speed</source>
+            <translation>Choose how Windows throttles the application's execution speed</translation>
         </message>
         <message>
             <source>Choose how much execution time the application receives</source>
@@ -1832,6 +2170,10 @@
             <translation>Choose what happens automatically when text recognition completes</translation>
         </message>
         <message>
+            <source>Choose what happens when content is dropped on the floating toolbar</source>
+            <translation>Choose what happens when content is dropped on the floating toolbar</translation>
+        </message>
+        <message>
             <source>Choose what happens when the clipboard content or selected file is already pinned</source>
             <translation>Choose what happens when the clipboard content or selected file is already pinned</translation>
         </message>
@@ -1860,16 +2202,16 @@
             <translation>Choose which actions also save an image in the selected image format and save directory</translation>
         </message>
         <message>
-            <source>Choose which fullscreen windows automatically disable global shortcuts</source>
-            <translation>Choose which fullscreen windows automatically disable global shortcuts</translation>
+            <source>Choose which fullscreen windows trigger automatic disabling</source>
+            <translation>Choose which fullscreen windows trigger automatic disabling</translation>
+        </message>
+        <message>
+            <source>Choose which inputs to disable</source>
+            <translation>Choose which inputs to disable</translation>
         </message>
         <message>
             <source>Clear</source>
             <translation>Clear</translation>
-        </message>
-        <message>
-            <source>Clear cache</source>
-            <translation>Clear cache</translation>
         </message>
         <message>
             <source>Clear closed records</source>
@@ -1890,14 +2232,6 @@
         <message>
             <source>Clear screenshot history?</source>
             <translation>Clear screenshot history?</translation>
-        </message>
-        <message>
-            <source>Clear the thumbnail cache?</source>
-            <translation>Clear the thumbnail cache?</translation>
-        </message>
-        <message>
-            <source>Clear thumbnail cache</source>
-            <translation>Clear thumbnail cache</translation>
         </message>
         <message>
             <source>Click-through</source>
@@ -2000,12 +2334,20 @@
             <translation>Control when the screenshot color picker is visible</translation>
         </message>
         <message>
+            <source>Copy</source>
+            <translation>Copy</translation>
+        </message>
+        <message>
             <source>Copy after pinning to screen</source>
             <translation>Copy after pinning to screen</translation>
         </message>
         <message>
             <source>Copy after text recognition</source>
             <translation>Copy after text recognition</translation>
+        </message>
+        <message>
+            <source>Copy all logs and crash reports as a ZIP archive to the clipboard</source>
+            <translation>Copy all logs and crash reports as a ZIP archive to the clipboard</translation>
         </message>
         <message>
             <source>Copy application settings as a zip archive to the clipboard</source>
@@ -2088,6 +2430,10 @@
             <translation>Core application settings</translation>
         </message>
         <message>
+            <source>Crash reports</source>
+            <translation>Crash reports</translation>
+        </message>
+        <message>
             <source>Current monitor</source>
             <translation>Current monitor</translation>
         </message>
@@ -2146,6 +2492,10 @@
         <message>
             <source>Customize the quick-set buttons for annotation fill colors</source>
             <translation>Customize the quick-set buttons for annotation fill colors</translation>
+        </message>
+        <message>
+            <source>Customize the quick-set buttons for annotation highlight colors</source>
+            <translation>Customize the quick-set buttons for annotation highlight colors</translation>
         </message>
         <message>
             <source>Customize the quick-set buttons for annotation stroke colors</source>
@@ -2276,12 +2626,24 @@
             <translation>Destroy</translation>
         </message>
         <message>
+            <source>Diagnostics</source>
+            <translation>Diagnostics</translation>
+        </message>
+        <message>
+            <source>Disable global mouse</source>
+            <translation>Disable global mouse</translation>
+        </message>
+        <message>
             <source>Disable global shortcuts</source>
             <translation>Disable global shortcuts</translation>
         </message>
         <message>
-            <source>Disable shortcuts in fullscreen windows</source>
-            <translation>Disable shortcuts in fullscreen windows</translation>
+            <source>Disable scope</source>
+            <translation>Disable scope</translation>
+        </message>
+        <message>
+            <source>Disable/enable global mouse</source>
+            <translation>Disable/enable global mouse</translation>
         </message>
         <message>
             <source>Disable/enable global shortcuts</source>
@@ -2324,6 +2686,10 @@
             <translation>Download automatically</translation>
         </message>
         <message>
+            <source>Downscale copied and saved screenshots. Auto preserves selections spanning displays with different scaling factors</source>
+            <translation>Downscale copied and saved screenshots. Auto preserves selections spanning displays with different scaling factors</translation>
+        </message>
+        <message>
             <source>Drag annotation tools to reorder them or stack them in the same toolbar position</source>
             <translation>Drag annotation tools to reorder them or stack them in the same toolbar position</translation>
         </message>
@@ -2362,6 +2728,10 @@
         <message>
             <source>Duplicate latest region</source>
             <translation>Duplicate latest region</translation>
+        </message>
+        <message>
+            <source>Edit selected images</source>
+            <translation>Edit selected images</translation>
         </message>
         <message>
             <source>Edit selection</source>
@@ -2464,6 +2834,10 @@
             <translation>Export configuration</translation>
         </message>
         <message>
+            <source>Export logs</source>
+            <translation>Export logs</translation>
+        </message>
+        <message>
             <source>Export recording</source>
             <translation>Export recording</translation>
         </message>
@@ -2564,6 +2938,10 @@
             <translation>Full-screen canvas (enable/disable click-through)</translation>
         </message>
         <message>
+            <source>Fullscreen input settings</source>
+            <translation>Fullscreen input settings</translation>
+        </message>
+        <message>
             <source>Fullscreen suppression</source>
             <translation>Fullscreen suppression</translation>
         </message>
@@ -2616,10 +2994,6 @@
             <translation>Global mouse gestures</translation>
         </message>
         <message>
-            <source>Global shortcut activation behavior</source>
-            <translation>Global shortcut activation behavior</translation>
-        </message>
-        <message>
             <source>Global shortcuts</source>
             <translation>Global shortcuts</translation>
         </message>
@@ -2656,6 +3030,10 @@
             <translation>Hardware acceleration</translation>
         </message>
         <message>
+            <source>HiDPI image scaling</source>
+            <translation>HiDPI image scaling</translation>
+        </message>
+        <message>
             <source>Hidden tools</source>
             <translation>Hidden tools</translation>
         </message>
@@ -2688,16 +3066,24 @@
             <translation>Highlight</translation>
         </message>
         <message>
+            <source>Highlight color preset %1</source>
+            <translation>Highlight color preset %1</translation>
+        </message>
+        <message>
+            <source>Highlight color presets</source>
+            <translation>Highlight color presets</translation>
+        </message>
+        <message>
             <source>Icon</source>
             <translation>Icon</translation>
         </message>
         <message>
-            <source>Ignore global shortcuts while a matching focused window occupies an entire monitor</source>
-            <translation>Ignore global shortcuts while a matching focused window occupies an entire monitor</translation>
-        </message>
-        <message>
             <source>Image and document files</source>
             <translation>Image and document files</translation>
+        </message>
+        <message>
+            <source>Image editing</source>
+            <translation>Image editing</translation>
         </message>
         <message>
             <source>Image export</source>
@@ -2734,6 +3120,14 @@
         <message>
             <source>Image size</source>
             <translation>Image size</translation>
+        </message>
+        <message>
+            <source>Image splitting</source>
+            <translation>Image splitting</translation>
+        </message>
+        <message>
+            <source>Image stitching</source>
+            <translation>Image stitching</translation>
         </message>
         <message>
             <source>Import</source>
@@ -2796,6 +3190,10 @@
             <translation>Interface settings</translation>
         </message>
         <message>
+            <source>Invert guide colors that are similar to their sampled background color</source>
+            <translation>Invert guide colors that are similar to their sampled background color</translation>
+        </message>
+        <message>
             <source>JPEG</source>
             <translation>JPEG</translation>
         </message>
@@ -2806,6 +3204,10 @@
         <message>
             <source>Jump to translation page</source>
             <translation>Jump to translation page</translation>
+        </message>
+        <message>
+            <source>Keep annotations editable after pinning to screen</source>
+            <translation>Keep annotations editable after pinning to screen</translation>
         </message>
         <message>
             <source>Keep closed windows available for restoration; disabling does not delete existing records</source>
@@ -2820,8 +3222,16 @@
             <translation>Keep records permanently</translation>
         </message>
         <message>
+            <source>Keep screenshot annotations editable with undo and redo history. Pinned images retain the original layout without layout compaction</source>
+            <translation>Keep screenshot annotations editable with undo and redo history. Pinned images retain the original layout without layout compaction</translation>
+        </message>
+        <message>
             <source>Keep screenshots available after the application closes</source>
             <translation>Keep screenshots available after the application closes</translation>
+        </message>
+        <message>
+            <source>Keep selection width and height consistent</source>
+            <translation>Keep selection width and height consistent</translation>
         </message>
         <message>
             <source>Keep the Snow Shot save dialog open after saving to show the result</source>
@@ -2928,6 +3338,10 @@
             <translation>Locked shadow color</translation>
         </message>
         <message>
+            <source>Logs archive copied to the clipboard</source>
+            <translation>Logs archive copied to the clipboard</translation>
+        </message>
+        <message>
             <source>Loop animated images</source>
             <translation>Loop animated images</translation>
         </message>
@@ -2962,14 +3376,6 @@
         <message>
             <source>Main interface skin position</source>
             <translation>Main interface skin position</translation>
-        </message>
-        <message>
-            <source>Maintain selection aspect ratio</source>
-            <translation>Maintain selection aspect ratio</translation>
-        </message>
-        <message>
-            <source>Manage Snow Shot's login permission in macOS System Settings</source>
-            <translation>Manage Snow Shot's login permission in macOS System Settings</translation>
         </message>
         <message>
             <source>Manage macOS permissions for Snow Shot</source>
@@ -3018,6 +3424,10 @@
         <message>
             <source>Medium V6</source>
             <translation>Medium V6</translation>
+        </message>
+        <message>
+            <source>Membership, credits and transactions</source>
+            <translation>Membership, credits and transactions</translation>
         </message>
         <message>
             <source>Memory optimization policy</source>
@@ -3176,16 +3586,16 @@
             <translation>Only when displayed</translation>
         </message>
         <message>
-            <source>Open</source>
-            <translation>Open</translation>
-        </message>
-        <message>
-            <source>Open Login Items settings</source>
-            <translation>Open Login Items settings</translation>
-        </message>
-        <message>
             <source>Open a canvas on the current display or toggle click-through</source>
             <translation>Open a canvas on the current display or toggle click-through</translation>
+        </message>
+        <message>
+            <source>Open at login</source>
+            <translation>Open at login</translation>
+        </message>
+        <message>
+            <source>Open image editing for each selected image file, or an empty window if no images are selected</source>
+            <translation>Open image editing for each selected image file, or an empty window if no images are selected</translation>
         </message>
         <message>
             <source>Open image splitting for each selected image file, or an empty window if no images are selected</source>
@@ -3266,6 +3676,18 @@
         <message>
             <source>Pages</source>
             <translation>Pages</translation>
+        </message>
+        <message>
+            <source>Pause or resume configured global mouse gestures</source>
+            <translation>Pause or resume configured global mouse gestures</translation>
+        </message>
+        <message>
+            <source>Pause the selected inputs while a matching focused window occupies an entire monitor</source>
+            <translation>Pause the selected inputs while a matching focused window occupies an entire monitor</translation>
+        </message>
+        <message>
+            <source>Performance</source>
+            <translation>Performance</translation>
         </message>
         <message>
             <source>Permanently remove all saved screenshots</source>
@@ -3406,6 +3828,14 @@
         <message>
             <source>Portrait A4</source>
             <translation>Portrait A4</translation>
+        </message>
+        <message>
+            <source>Power QoS</source>
+            <translation>Power QoS</translation>
+        </message>
+        <message>
+            <source>Power saving</source>
+            <translation>Power saving</translation>
         </message>
         <message>
             <source>Preload the selected model for faster recognition. Requires a resident process and uses additional memory</source>
@@ -3588,10 +4018,6 @@
             <translation>Remember last used tool</translation>
         </message>
         <message>
-            <source>Remove cached screenshot-history thumbnails</source>
-            <translation>Remove cached screenshot-history thumbnails</translation>
-        </message>
-        <message>
             <source>Remove closed windows</source>
             <translation>Remove closed windows</translation>
         </message>
@@ -3754,6 +4180,46 @@
         <message>
             <source>Saved screenshots</source>
             <translation>Saved screenshots</translation>
+        </message>
+        <message>
+            <source>Scale down to 28.6% (350%)</source>
+            <translation>Scale down to 28.6% (350%)</translation>
+        </message>
+        <message>
+            <source>Scale down to 30.8% (325%)</source>
+            <translation>Scale down to 30.8% (325%)</translation>
+        </message>
+        <message>
+            <source>Scale down to 33.3% (300%)</source>
+            <translation>Scale down to 33.3% (300%)</translation>
+        </message>
+        <message>
+            <source>Scale down to 36.4% (275%)</source>
+            <translation>Scale down to 36.4% (275%)</translation>
+        </message>
+        <message>
+            <source>Scale down to 40% (250%)</source>
+            <translation>Scale down to 40% (250%)</translation>
+        </message>
+        <message>
+            <source>Scale down to 44.4% (225%)</source>
+            <translation>Scale down to 44.4% (225%)</translation>
+        </message>
+        <message>
+            <source>Scale down to 50% (200%)</source>
+            <translation>Scale down to 50% (200%)</translation>
+        </message>
+        <message>
+            <source>Scale down to 57.1% (175%)</source>
+            <translation>Scale down to 57.1% (175%)</translation>
+        </message>
+        <message>
+            <source>Scale down to 66.7% (150%)</source>
+            <translation>Scale down to 66.7% (150%)</translation>
+        </message>
+        <message>
+            <source>Scale down to 80% (125%)</source>
+            <translation>Scale down to 80% (125%)</translation>
         </message>
         <message>
             <source>Scale recordings that exceed the selected maximum resolution</source>
@@ -4416,6 +4882,10 @@
             <translation>Switch window group</translation>
         </message>
         <message>
+            <source>Sync tool colors</source>
+            <translation>Sync tool colors</translation>
+        </message>
+        <message>
             <source>System</source>
             <translation>System</translation>
         </message>
@@ -4520,16 +4990,16 @@
             <translation>Theme, font, skins and toolbar size</translation>
         </message>
         <message>
-            <source>Thumbnail cache</source>
-            <translation>Thumbnail cache</translation>
-        </message>
-        <message>
             <source>Thumbnail mode</source>
             <translation>Thumbnail mode</translation>
         </message>
         <message>
             <source>Toggle always on top for the window under the cursor</source>
             <translation>Toggle always on top for the window under the cursor</translation>
+        </message>
+        <message>
+            <source>Toggle automatic disabling of the selected inputs in fullscreen windows. This shortcut stays active while automatic disabling is enabled</source>
+            <translation>Toggle automatic disabling of the selected inputs in fullscreen windows. This shortcut stays active while automatic disabling is enabled</translation>
         </message>
         <message>
             <source>Toggle cursor visibility</source>
@@ -4554,6 +5024,10 @@
         <message>
             <source>Tool positions</source>
             <translation>Tool positions</translation>
+        </message>
+        <message>
+            <source>Toolbar drop behavior</source>
+            <translation>Toolbar drop behavior</translation>
         </message>
         <message>
             <source>Toolbar opacity</source>
@@ -4672,10 +5146,6 @@
             <translation>Turn every global shortcut off or back on; this shortcut stays active while global shortcuts are disabled</translation>
         </message>
         <message>
-            <source>Turn off or back on the suppression of global shortcuts while the focused window is fullscreen; this shortcut stays active while fullscreen suppression is enabled</source>
-            <translation>Turn off or back on the suppression of global shortcuts while the focused window is fullscreen; this shortcut stays active while fullscreen suppression is enabled</translation>
-        </message>
-        <message>
             <source>UIA</source>
             <translation>UIA</translation>
         </message>
@@ -4714,6 +5184,10 @@
         <message>
             <source>Use one letter (A–Z) or digit (0–9) when the classic Windows context menu is open</source>
             <translation>Use one letter (A–Z) or digit (0–9) when the classic Windows context menu is open</translation>
+        </message>
+        <message>
+            <source>Use one shared stroke, fill, and highlight color for newly created annotations</source>
+            <translation>Use one shared stroke, fill, and highlight color for newly created annotations</translation>
         </message>
         <message>
             <source>Use regular icon settings</source>
@@ -5087,6 +5561,10 @@ Unavailable: %2</translation>
             <translation>Choose an absolute storage directory path</translation>
         </message>
         <message>
+            <source>Could not change the storage directory</source>
+            <translation>Could not change the storage directory</translation>
+        </message>
+        <message>
             <source>Could not copy %1</source>
             <translation>Could not copy %1</translation>
         </message>
@@ -5166,14 +5644,6 @@ Unavailable: %2</translation>
             <translation>Choose storage directory</translation>
         </message>
         <message>
-            <source>Copy today's log file</source>
-            <translation>Copy today's log file</translation>
-        </message>
-        <message>
-            <source>Could not copy the log file: %1</source>
-            <translation>Could not copy the log file: %1</translation>
-        </message>
-        <message>
             <source>Current storage location: %1</source>
             <translation>Current storage location: %1</translation>
         </message>
@@ -5228,10 +5698,6 @@ Unavailable: %2</translation>
         <message>
             <source>Latest storage error</source>
             <translation>Latest storage error</translation>
-        </message>
-        <message>
-            <source>Log file copied</source>
-            <translation>Log file copied</translation>
         </message>
         <message>
             <source>Log location</source>
@@ -5372,14 +5838,6 @@ Unavailable: %2</translation>
         <message>
             <source>Switching storage directory…</source>
             <translation>Switching storage directory…</translation>
-        </message>
-        <message>
-            <source>Thumbnail cache</source>
-            <translation>Thumbnail cache</translation>
-        </message>
-        <message>
-            <source>Thumbnail cache disk usage</source>
-            <translation>Thumbnail cache disk usage</translation>
         </message>
         <message>
             <source>Total app storage</source>
@@ -5535,6 +5993,49 @@ Unavailable: %2</translation>
         <message>
             <source>Youdao</source>
             <translation>Youdao</translation>
+        </message>
+    </context>
+    <context>
+        <name>snow_shot::app::AccountSessionService</name>
+        <message>
+            <source>%1 credits</source>
+            <translation>%1 credits</translation>
+        </message>
+        <message>
+            <source>Confirm your password</source>
+            <translation>Confirm your password</translation>
+        </message>
+        <message>
+            <source>Enter the image code</source>
+            <translation>Enter the image code</translation>
+        </message>
+        <message>
+            <source>Enter your password</source>
+            <translation>Enter your password</translation>
+        </message>
+        <message>
+            <source>Enter your username</source>
+            <translation>Enter your username</translation>
+        </message>
+        <message>
+            <source>This payment is already being processed. We will keep checking its result</source>
+            <translation>This payment is already being processed. We will keep checking its result</translation>
+        </message>
+        <message>
+            <source>Use 3–32 letters, numbers, underscores, dots, or hyphens for your username</source>
+            <translation>Use 3–32 letters, numbers, underscores, dots, or hyphens for your username</translation>
+        </message>
+        <message>
+            <source>Use a password between 8 and 16 characters</source>
+            <translation>Use a password between 8 and 16 characters</translation>
+        </message>
+        <message>
+            <source>Your account is activated. Sign in with your username and password if automatic sign-in does not complete</source>
+            <translation>Your account is activated. Sign in with your username and password if automatic sign-in does not complete</translation>
+        </message>
+        <message>
+            <source>Your session could not be saved securely. Keep this app open until payment is confirmed; you may need to sign in again after restarting</source>
+            <translation>Your session could not be saved securely. Keep this app open until payment is confirmed; you may need to sign in again after restarting</translation>
         </message>
     </context>
     <context>

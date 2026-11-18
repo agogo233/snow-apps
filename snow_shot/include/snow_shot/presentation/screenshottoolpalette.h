@@ -104,6 +104,7 @@ class ScreenshotToolPalette final : public QWidget,
         Magnifier,
         SpeechBubble,
         Bracket,
+        Document,
     };
 
     enum class MoveToolPresentation {
@@ -309,6 +310,7 @@ class ScreenshotToolPalette final : public QWidget,
     void prepareForDisplay();
     void resetStyleState();
     void setCreationStyleDefaults(const SnowCanvasStyleDefaults& defaults);
+    void setSharedCreationColor(const std::optional<QColor>& color);
     [[nodiscard]] SnowCanvasStyleDefaults creationStyleDefaults() const;
     void rememberStyleEdit(const SnowCanvasStyleEdit& edit);
     void setStyleEditHandler(std::function<bool(const SnowCanvasStyleEdit&)> handler);
@@ -387,7 +389,7 @@ class ScreenshotToolPalette final : public QWidget,
     void setSpotlightConfig(const SnowCanvasSpotlightConfig& config);
     void setSelectionOpacity(qreal opacity, bool mixed = false);
     void installWheelFilters(QObject* receiver, QWidget* scope = nullptr);
-    bool handleToolbarWheel(QWheelEvent* event);
+    bool handleToolbarWheel(QWheelEvent* event, const QWidget* receiver = nullptr);
     void resetAngleWheelInput();
     [[nodiscard]] bool canActivateRecordingShortcut(const QString& actionId) const;
     bool activateRecordingShortcut(const QString& actionId);
@@ -419,6 +421,10 @@ class ScreenshotToolPalette final : public QWidget,
     void setRecordingSettingsOwnerWindow(QWidget* owner);
     void setRecordingKeyboardSize(int value);
     [[nodiscard]] int recordingKeyboardSize() const;
+    void setRecordingFollowMouseEnabled(bool enabled);
+    [[nodiscard]] bool recordingFollowMouseEnabled() const;
+    void setRecordingFollowMouseOptions(bool smoothMovement, bool reduceJitter);
+    [[nodiscard]] adqt::widgets::AdPopover* recordingFollowMousePopover() const;
     void setRecordingWebcamEnabled(bool enabled);
     [[nodiscard]] bool recordingWebcamEnabled() const;
     void setRecordingWebcamSize(int size);
@@ -557,16 +563,17 @@ class ScreenshotToolPalette final : public QWidget,
     void ocrRequested();
     void textTranslationRequested();
     void tableRequested();
+    void documentRequested();
     void qrRequested();
     void latexRequested();
     void recognitionModelChanged(const QString& selection);
     void markdownRequested();
     void htmlRequested();
-    void imageConversionSettingsRequested();
     void tableMergeRequested();
     void tableSplitRequested();
     void tableResetRequested();
     void openSpreadsheetFileRequested();
+    void openDocumentFileRequested();
     void showOriginalImageRequested(bool show);
     void textEditRequested();
     void textTranslateRequested();
@@ -646,6 +653,9 @@ class ScreenshotToolPalette final : public QWidget,
     void recordingStartDelaySecondsChanged(int seconds);
     void recordingMouseTrailDurationMsChanged(int value);
     void recordingKeyboardSizeChanged(int value);
+    void recordingFollowMouseEnabledChanged(bool enabled);
+    void recordingFollowMouseSmoothMovementChanged(bool enabled);
+    void recordingFollowMouseReduceJitterChanged(bool enabled);
     void recordingWebcamEnabledChanged(bool enabled);
     void recordingWebcamSizeChanged(int size);
     void recordingWebcamShapeChanged(const QString& shape);
@@ -698,11 +708,10 @@ class ScreenshotToolPalette final : public QWidget,
 #if SNOW_SHOT_ENABLE_TABLE_RECOGNITION
     void createTableRecognitionActionFamily();
 #endif
+    void createRecognitionModelSelect();
+    [[nodiscard]] ScreenshotRecognitionModelState* recognitionModelStateForTool(Tool tool);
     void refreshRecognitionModelSelect();
     void refreshTextTranslationServiceSelect();
-#if SNOW_SHOT_ENABLE_IMAGE_CONVERSION
-    void createImageConversionActionFamily();
-#endif
     void createScrollingRecognitionActionFamily();
     void openScrollingSettings();
     void closeScrollingSettings();
@@ -752,10 +761,12 @@ class ScreenshotToolPalette final : public QWidget,
     [[nodiscard]] bool ensureRecordingEffectSettingsModal();
     void setRecordingExportSettingsVisible(bool visible);
     void updateRecordingExportSettingsControls();
+    void updateRecordingDrawingControls();
     void refreshRecordingExportSettingsText();
     void refreshRecordingEffectSettingsModalText();
     void refreshRecordingMouseOptions();
     void refreshRecordingKeyboardOptions();
+    void refreshRecordingFollowMouseOptions();
     void refreshRecordingPostProcessingOptions();
     void refreshRecordingHighlightSwatch();
     bool activateTableQrTool(Tool tool, bool toggleVisibleButton = true);
@@ -773,6 +784,7 @@ class ScreenshotToolPalette final : public QWidget,
     void markLayoutDirty(bool rowOrderChanged = false);
     void updateToolbarRowGeometry(bool styleToolbarVisible);
     void setActiveToolButton(adqt::widgets::AdButton* activeButton);
+    bool clearActiveToolState();
     bool setStyleControlsActive(Tool tool);
     QWidget* styleControlsForTool(Tool tool) const;
     [[nodiscard]] bool toolUsesStyleToolbar(Tool tool) const;
@@ -990,13 +1002,17 @@ class ScreenshotToolPalette final : public QWidget,
     adqt::widgets::AdButton* m_sequenceNumberButton = nullptr;
     adqt::widgets::AdButton* m_ocrButton = nullptr;
     adqt::widgets::AdButton* m_textTranslationButton = nullptr;
+    adqt::widgets::AdButton* m_documentButton = nullptr;
+    adqt::widgets::AdButton* m_openDocumentFileButton = nullptr;
+    QFrame* m_openDocumentFileSeparator = nullptr;
+    QVector<QSpacerItem*> m_documentActionSpacers;
+    ScreenshotRecognitionModelState m_documentRecognitionModelState;
     adqt::widgets::AdButton* m_tableButton = nullptr;
     adqt::widgets::AdButton* m_tableOptionButton = nullptr;
     adqt::widgets::AdButton* m_qrButton = nullptr;
     adqt::widgets::AdButton* m_latexButton = nullptr;
     adqt::widgets::AdButton* m_markdownButton = nullptr;
     adqt::widgets::AdButton* m_htmlButton = nullptr;
-    adqt::widgets::AdButton* m_conversionSettingsButton = nullptr;
     adqt::widgets::AdPopover* m_tableQrPopover = nullptr;
     QVector<adqt::widgets::AdButton*> m_tableQrOptionButtons;
     QVector<int> m_tableQrOptionValues;
@@ -1020,6 +1036,7 @@ class ScreenshotToolPalette final : public QWidget,
     QSpacerItem* m_recognitionModelSpacer = nullptr;
     ScreenshotRecognitionModelState m_tableRecognitionModelState;
     ScreenshotRecognitionModelState m_latexRecognitionModelState;
+    ScreenshotRecognitionModelState m_conversionModelState;
     adqt::widgets::AdSelect* m_textFormattingSelect = nullptr;
     adqt::widgets::AdSelect* m_textPunctuationSelect = nullptr;
     adqt::widgets::AdSelect* m_textTargetLanguageSelect = nullptr;
@@ -1076,6 +1093,13 @@ class ScreenshotToolPalette final : public QWidget,
     bool m_recordingRecordLettersAndSymbols = true;
     bool m_recordingRecordControlKeys = true;
     bool m_recordingPreserveKeyboardShortcuts = true;
+    adqt::widgets::AdButton* m_recordFollowMouseButton = nullptr;
+    adqt::widgets::AdPopover* m_recordFollowMousePopover = nullptr;
+    QPointer<adqt::widgets::AdCheckbox> m_recordFollowMouseSmoothMovementCheckbox;
+    QPointer<adqt::widgets::AdCheckbox> m_recordFollowMouseReduceJitterCheckbox;
+    bool m_recordingFollowMouseEnabled = false;
+    bool m_recordingFollowMouseSmoothMovement = true;
+    bool m_recordingFollowMouseReduceJitter = true;
     adqt::widgets::AdButton* m_recordWebcamButton = nullptr;
     adqt::widgets::AdInputNumber* m_recordWebcamSizeInput = nullptr;
     adqt::widgets::AdSelect* m_recordWebcamShapeSelect = nullptr;
