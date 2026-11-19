@@ -46,6 +46,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QMessageBox>
 #include <QDebug>
 #include <QFileInfo>
 #include <QRegularExpression>
@@ -124,6 +125,11 @@ std::optional<bool> updateTransactionPending(const QString& helperPath, const QS
     return output == "pending";
 }
 #endif
+
+void reportStartupFailure(const QString& title, const QString& detail) {
+    qWarning().noquote() << detail;
+    QMessageBox::warning(nullptr, title, detail);
+}
 } // namespace
 
 int main(int argc, char* argv[]) {
@@ -490,7 +496,14 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     if (instanceResult.outcome == snow_shot::app::SingleInstanceOutcome::Failed) {
-        qWarning().noquote() << instanceResult.error;
+        reportStartupFailure(
+            QCoreApplication::translate("snow_shot::app::Startup", "Snow Shot startup failed"),
+            QCoreApplication::translate("snow_shot::app::Startup",
+                                        "Another Snow Shot process owns the storage lock but "
+                                        "could not be contacted. Close the other instance from "
+                                        "Task Manager or restart the computer, then try again"
+                                        "\n\n%1")
+                .arg(instanceResult.error));
         return 2;
     }
     QObject::connect(&app, &QCoreApplication::aboutToQuit, &singleInstance,
@@ -498,7 +511,8 @@ int main(int argc, char* argv[]) {
 
 #ifndef Q_OS_MACOS
     // macOS updates use a downloaded DMG, not the standalone transaction helper.
-    if (!snow_shot::app::distribution::isStoreManaged()) {
+    if (!snow_shot::app::distribution::isStoreManaged() &&
+        !snow_shot::app::distribution::updateChecksDisabled()) {
         QString executablePath = QString::fromLocal8Bit(argv[0]);
 #ifdef Q_OS_WIN
         wchar_t modulePath[32768]{};
@@ -512,6 +526,15 @@ int main(int argc, char* argv[]) {
                                          .filePath(snow_shot::app::edition::updaterName());
         const auto pendingUpdate = updateTransactionPending(updateHelper, updateRoot);
         if (!pendingUpdate.has_value()) {
+            reportStartupFailure(
+                QCoreApplication::translate("snow_shot::app::Startup", "Snow Shot startup failed"),
+                QCoreApplication::translate("snow_shot::app::Startup",
+                                            "The update helper is missing or did not respond, so "
+                                            "Snow Shot could not verify the installation state. "
+                                            "Reinstall Snow Shot from a complete package, or "
+                                            "restore the update helper next to the main "
+                                            "executable, then try again\n\nExpected location: %1")
+                    .arg(updateHelper));
             return 6;
         }
         if (*pendingUpdate) {

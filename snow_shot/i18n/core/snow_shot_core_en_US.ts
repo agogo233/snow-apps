@@ -994,6 +994,29 @@ so every moment on screen can be expressed clearly and shared easily</translatio
         </message>
     </context>
     <context>
+        <name>snow_shot::app::Startup</name>
+        <message>
+            <source>Another Snow Shot process owns the storage lock but could not be contacted. Close the other instance from Task Manager or restart the computer, then try again
+
+%1</source>
+            <translation>Another Snow Shot process owns the storage lock but could not be contacted. Close the other instance from Task Manager or restart the computer, then try again
+
+%1</translation>
+        </message>
+        <message>
+            <source>Snow Shot startup failed</source>
+            <translation>Snow Shot startup failed</translation>
+        </message>
+        <message>
+            <source>The update helper is missing or did not respond, so Snow Shot could not verify the installation state. Reinstall Snow Shot from a complete package, or restore the update helper next to the main executable, then try again
+
+Expected location: %1</source>
+            <translation>The update helper is missing or did not respond, so Snow Shot could not verify the installation state. Reinstall Snow Shot from a complete package, or restore the update helper next to the main executable, then try again
+
+Expected location: %1</translation>
+        </message>
+    </context>
+    <context>
         <name>snow_shot::presentation::SystemTrayController</name>
         <message>
             <source>Capture</source>

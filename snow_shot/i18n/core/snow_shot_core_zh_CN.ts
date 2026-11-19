@@ -994,6 +994,29 @@ so every moment on screen can be expressed clearly and shared easily</source>
         </message>
     </context>
     <context>
+        <name>snow_shot::app::Startup</name>
+        <message>
+            <source>Another Snow Shot process owns the storage lock but could not be contacted. Close the other instance from Task Manager or restart the computer, then try again
+
+%1</source>
+            <translation>另一个 Snow Shot 进程占用了存储锁，但无法与它通信。请在任务管理器中结束该实例，或重启电脑后再试
+
+%1</translation>
+        </message>
+        <message>
+            <source>Snow Shot startup failed</source>
+            <translation>Snow Shot 启动失败</translation>
+        </message>
+        <message>
+            <source>The update helper is missing or did not respond, so Snow Shot could not verify the installation state. Reinstall Snow Shot from a complete package, or restore the update helper next to the main executable, then try again
+
+Expected location: %1</source>
+            <translation>更新助手缺失或没有响应，Snow Shot 无法校验安装状态。请使用完整安装包重新安装，或将更新助手恢复到主程序所在目录后再试
+
+预期位置：%1</translation>
+        </message>
+    </context>
+    <context>
         <name>snow_shot::presentation::SystemTrayController</name>
         <message>
             <source>Capture</source>
