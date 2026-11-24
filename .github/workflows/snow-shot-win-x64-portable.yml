@@ -59,7 +59,7 @@ jobs:
         id: restore-qt
         uses: actions/cache/restore@v4
         with:
-          key: snow-qt-static-x64-v1-${{ hashFiles('scripts/qt-toolchain.json', 'scripts/static-qt-features.json', 'scripts/build-static-qt.ps1') }}
+          key: snow-qt-static-x64-v1-${{ hashFiles('scripts/qt-toolchain.json', 'scripts/static-qt-features.json', 'scripts/build-static-qt.ps1', 'vcpkg.json', 'cmake/vcpkg-overlay-ports/**', 'cmake/vcpkg-overlay-triplets/**', 'scripts/bootstrap.ps1') }}
           path: .tools/qt
 
       - name: Restore Cargo registry cache
@@ -233,7 +233,7 @@ jobs:
         if: steps.restore-qt.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          key: snow-qt-static-x64-v1-${{ hashFiles('scripts/qt-toolchain.json', 'scripts/static-qt-features.json', 'scripts/build-static-qt.ps1') }}
+          key: snow-qt-static-x64-v1-${{ hashFiles('scripts/qt-toolchain.json', 'scripts/static-qt-features.json', 'scripts/build-static-qt.ps1', 'vcpkg.json', 'cmake/vcpkg-overlay-ports/**', 'cmake/vcpkg-overlay-triplets/**', 'scripts/bootstrap.ps1') }}
           path: .tools/qt
 
       - name: Verify or download pinned OCR assets
