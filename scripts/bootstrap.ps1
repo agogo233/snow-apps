@@ -119,12 +119,19 @@ if ($LASTEXITCODE -ne 0 -or @($vcpkgHead).Count -ne 1) {
     throw "Unable to determine the repository-local vcpkg revision: $vcpkgRoot"
 }
 $vcpkgHead = $vcpkgHead.Trim()
-if ($vcpkgHead -ne $vcpkgBaseline) {
+# A cache-restored checkout may match the baseline yet miss work-tree files
+# (e.g. LICENSE.txt needed by builtin ports such as vcpkg-cmake); re-checkout
+# whenever the baseline is not checked out or a tracked root file is absent.
+$vcpkgRootLicense = Join-Path $vcpkgRoot "LICENSE.txt"
+if ($vcpkgHead -ne $vcpkgBaseline -or
+    -not (Test-Path -LiteralPath $vcpkgRootLicense -PathType Leaf)) {
+    if ($vcpkgHead -ne $vcpkgBaseline) {
+        Invoke-Checked -Command $git.Source -Arguments @(
+            "fetch", "origin", $vcpkgBaseline, "--depth=1"
+        ) -WorkingDirectory $vcpkgRoot
+    }
     Invoke-Checked -Command $git.Source -Arguments @(
-        "fetch", "origin", $vcpkgBaseline, "--depth=1"
-    ) -WorkingDirectory $vcpkgRoot
-    Invoke-Checked -Command $git.Source -Arguments @(
-        "checkout", "--detach", $vcpkgBaseline
+        "checkout", "-f", "--detach", $vcpkgBaseline
     ) -WorkingDirectory $vcpkgRoot
 }
 
