@@ -1618,10 +1618,6 @@
             <translation>Allow resizing the selection from its borders while non-move tools are active</translation>
         </message>
         <message>
-            <source>Also copy the screenshot to the clipboard when pinning it to screen</source>
-            <translation>Also copy the screenshot to the clipboard when pinning it to screen</translation>
-        </message>
-        <message>
             <source>Always</source>
             <translation>Always</translation>
         </message>
@@ -1726,6 +1722,18 @@
             <translation>Applies to all three skins. Overlay fills each surface and crops the edges. Contain shows the whole image</translation>
         </message>
         <message>
+            <source>Applies to pins created from the screenshot window</source>
+            <translation>Applies to pins created from the screenshot window</translation>
+        </message>
+        <message>
+            <source>Applies to standard, scrolling, monitor, and focused-window captures</source>
+            <translation>Applies to standard, scrolling, monitor, and focused-window captures</translation>
+        </message>
+        <message>
+            <source>Applies when Copy current view copies an image</source>
+            <translation>Applies when Copy current view copies an image</translation>
+        </message>
+        <message>
             <source>Apply to recognized text when editing or copying</source>
             <translation>Apply to recognized text when editing or copying</translation>
         </message>
@@ -1774,8 +1782,8 @@
             <translation>Auto-recognize QR code</translation>
         </message>
         <message>
-            <source>Auto-save after execution</source>
-            <translation>Auto-save after execution</translation>
+            <source>Auto-save</source>
+            <translation>Auto-save</translation>
         </message>
         <message>
             <source>Auto-save image filename format</source>
@@ -2190,6 +2198,10 @@
             <translation>Choose when recognized text can be selected on pinned screenshots</translation>
         </message>
         <message>
+            <source>Choose when to play the shutter sound</source>
+            <translation>Choose when to play the shutter sound</translation>
+        </message>
+        <message>
             <source>Choose where images are written for automatic save and copy-file actions</source>
             <translation>Choose where images are written for automatic save and copy-file actions</translation>
         </message>
@@ -2198,8 +2210,8 @@
             <translation>Choose where recording output files are written</translation>
         </message>
         <message>
-            <source>Choose which actions also save an image in the selected image format and save directory</source>
-            <translation>Choose which actions also save an image in the selected image format and save directory</translation>
+            <source>Choose whether to keep editable screenshot sessions, only final images, or no new history</source>
+            <translation>Choose whether to keep editable screenshot sessions, only final images, or no new history</translation>
         </message>
         <message>
             <source>Choose which fullscreen windows trigger automatic disabling</source>
@@ -2208,6 +2220,10 @@
         <message>
             <source>Choose which inputs to disable</source>
             <translation>Choose which inputs to disable</translation>
+        </message>
+        <message>
+            <source>Choose which tasks run after a successful image export</source>
+            <translation>Choose which tasks run after a successful image export</translation>
         </message>
         <message>
             <source>Clear</source>
@@ -2274,6 +2290,10 @@
             <translation>Color picker display mode</translation>
         </message>
         <message>
+            <source>Compress selected images</source>
+            <translation>Compress selected images</translation>
+        </message>
+        <message>
             <source>Compression level</source>
             <translation>Compression level</translation>
         </message>
@@ -2338,10 +2358,6 @@
             <translation>Copy</translation>
         </message>
         <message>
-            <source>Copy after pinning to screen</source>
-            <translation>Copy after pinning to screen</translation>
-        </message>
-        <message>
             <source>Copy after text recognition</source>
             <translation>Copy after text recognition</translation>
         </message>
@@ -2362,12 +2378,8 @@
             <translation>Copy color</translation>
         </message>
         <message>
-            <source>Copy current monitor</source>
-            <translation>Copy current monitor</translation>
-        </message>
-        <message>
-            <source>Copy focused window</source>
-            <translation>Copy focused window</translation>
+            <source>Copy file</source>
+            <translation>Copy file</translation>
         </message>
         <message>
             <source>Copy image file to clipboard</source>
@@ -2378,20 +2390,12 @@
             <translation>Copy original content</translation>
         </message>
         <message>
-            <source>Copy pinned window</source>
-            <translation>Copy pinned window</translation>
-        </message>
-        <message>
             <source>Copy recording</source>
             <translation>Copy recording</translation>
         </message>
         <message>
             <source>Copy screenshot</source>
             <translation>Copy screenshot</translation>
-        </message>
-        <message>
-            <source>Copy scrolling screenshot</source>
-            <translation>Copy scrolling screenshot</translation>
         </message>
         <message>
             <source>Copy text</source>
@@ -2508,6 +2512,10 @@
         <message>
             <source>Customize the screenshot action toolbar</source>
             <translation>Customize the screenshot action toolbar</translation>
+        </message>
+        <message>
+            <source>Cycle annotation tool options</source>
+            <translation>Cycle annotation tool options</translation>
         </message>
         <message>
             <source>DXGI</source>
@@ -2846,6 +2854,10 @@
             <translation>Export settings</translation>
         </message>
         <message>
+            <source>Export tasks</source>
+            <translation>Export tasks</translation>
+        </message>
+        <message>
             <source>Extended features settings</source>
             <translation>Extended features settings</translation>
         </message>
@@ -2908,6 +2920,10 @@
         <message>
             <source>Focused window</source>
             <translation>Focused window</translation>
+        </message>
+        <message>
+            <source>Focused window and current display</source>
+            <translation>Focused window and current display</translation>
         </message>
         <message>
             <source>Follow mouse movement</source>
@@ -3214,6 +3230,10 @@
             <translation>Keep closed windows available for restoration; disabling does not delete existing records</translation>
         </message>
         <message>
+            <source>Keep full history</source>
+            <translation>Keep full history</translation>
+        </message>
+        <message>
             <source>Keep group main buttons visible</source>
             <translation>Keep group main buttons visible</translation>
         </message>
@@ -3222,12 +3242,12 @@
             <translation>Keep records permanently</translation>
         </message>
         <message>
-            <source>Keep screenshot annotations editable with undo and redo history. Pinned images retain the original layout without layout compaction</source>
-            <translation>Keep screenshot annotations editable with undo and redo history. Pinned images retain the original layout without layout compaction</translation>
+            <source>Keep results only</source>
+            <translation>Keep results only</translation>
         </message>
         <message>
-            <source>Keep screenshots available after the application closes</source>
-            <translation>Keep screenshots available after the application closes</translation>
+            <source>Keep screenshot annotations editable with undo and redo history. Pinned images retain the original layout without layout compaction</source>
+            <translation>Keep screenshot annotations editable with undo and redo history. Pinned images retain the original layout without layout compaction</translation>
         </message>
         <message>
             <source>Keep selection width and height consistent</source>
@@ -3562,6 +3582,10 @@
             <translation>Normal</translation>
         </message>
         <message>
+            <source>Normal screenshot</source>
+            <translation>Normal screenshot</translation>
+        </message>
+        <message>
             <source>Notify after export completes</source>
             <translation>Notify after export completes</translation>
         </message>
@@ -3592,6 +3616,10 @@
         <message>
             <source>Open at login</source>
             <translation>Open at login</translation>
+        </message>
+        <message>
+            <source>Open image compression for each selected image file, or an empty window if no images are selected</source>
+            <translation>Open image compression for each selected image file, or an empty window if no images are selected</translation>
         </message>
         <message>
             <source>Open image editing for each selected image file, or an empty window if no images are selected</source>
@@ -3702,20 +3730,12 @@
             <translation>Permission status and access</translation>
         </message>
         <message>
-            <source>Persistent screenshot history</source>
-            <translation>Persistent screenshot history</translation>
-        </message>
-        <message>
             <source>Pin clipboard content to screen</source>
             <translation>Pin clipboard content to screen</translation>
         </message>
         <message>
             <source>Pin images, supported files, formatted text, or HTML from the clipboard to the screen</source>
             <translation>Pin images, supported files, formatted text, or HTML from the clipboard to the screen</translation>
-        </message>
-        <message>
-            <source>Pin screenshot to screen</source>
-            <translation>Pin screenshot to screen</translation>
         </message>
         <message>
             <source>Pin selected files to screen</source>
@@ -3812,14 +3832,6 @@
         <message>
             <source>Play / pause</source>
             <translation>Play / pause</translation>
-        </message>
-        <message>
-            <source>Play a shutter sound when capturing the focused window or current display</source>
-            <translation>Play a shutter sound when capturing the focused window or current display</translation>
-        </message>
-        <message>
-            <source>Play a shutter sound when screenshot capture starts</source>
-            <translation>Play a shutter sound when screenshot capture starts</translation>
         </message>
         <message>
             <source>Play saved GIF, APNG, and WebP recordings repeatedly</source>
@@ -4118,6 +4130,10 @@
             <translation>Retain closed windows</translation>
         </message>
         <message>
+            <source>Retain screenshot history</source>
+            <translation>Retain screenshot history</translation>
+        </message>
+        <message>
             <source>Retention limits apply only to closed windows; retained windows are always protected</source>
             <translation>Retention limits apply only to closed windows; retained windows are always protected</translation>
         </message>
@@ -4140,6 +4156,70 @@
         <message>
             <source>Run after %1 seconds</source>
             <translation>Run after %1 seconds</translation>
+        </message>
+        <message>
+            <source>Run after copying a pinned window</source>
+            <translation>Run after copying a pinned window</translation>
+        </message>
+        <message>
+            <source>Run after copying a screenshot</source>
+            <translation>Run after copying a screenshot</translation>
+        </message>
+        <message>
+            <source>Run after pinning a screenshot to the screen</source>
+            <translation>Run after pinning a screenshot to the screen</translation>
+        </message>
+        <message>
+            <source>Run after printing a pinned window</source>
+            <translation>Run after printing a pinned window</translation>
+        </message>
+        <message>
+            <source>Run after printing a screenshot</source>
+            <translation>Run after printing a screenshot</translation>
+        </message>
+        <message>
+            <source>Run after saving a pinned window</source>
+            <translation>Run after saving a pinned window</translation>
+        </message>
+        <message>
+            <source>Run after saving a screenshot</source>
+            <translation>Run after saving a screenshot</translation>
+        </message>
+        <message>
+            <source>Run after sharing a pinned window via AirDrop</source>
+            <translation>Run after sharing a pinned window via AirDrop</translation>
+        </message>
+        <message>
+            <source>Run after sharing a screenshot via AirDrop</source>
+            <translation>Run after sharing a screenshot via AirDrop</translation>
+        </message>
+        <message>
+            <source>Run after uploading a pinned window</source>
+            <translation>Run after uploading a pinned window</translation>
+        </message>
+        <message>
+            <source>Run after uploading a screenshot</source>
+            <translation>Run after uploading a screenshot</translation>
+        </message>
+        <message>
+            <source>Runs after a successful manual cloud upload</source>
+            <translation>Runs after a successful manual cloud upload</translation>
+        </message>
+        <message>
+            <source>Runs after each successful Quick save or Save as file</source>
+            <translation>Runs after each successful Quick save or Save as file</translation>
+        </message>
+        <message>
+            <source>Runs after each successful individual save</source>
+            <translation>Runs after each successful individual save</translation>
+        </message>
+        <message>
+            <source>Runs after the print job is submitted</source>
+            <translation>Runs after the print job is submitted</translation>
+        </message>
+        <message>
+            <source>Runs when AirDrop confirms sharing</source>
+            <translation>Runs when AirDrop confirms sharing</translation>
         </message>
         <message>
             <source>Save as file</source>
@@ -4330,10 +4410,6 @@
             <translation>Screenshot shortcuts and actions</translation>
         </message>
         <message>
-            <source>Screenshot sound notification</source>
-            <translation>Screenshot sound notification</translation>
-        </message>
-        <message>
             <source>Screenshot toolbar</source>
             <translation>Screenshot toolbar</translation>
         </message>
@@ -4376,6 +4452,10 @@
         <message>
             <source>Select skin image</source>
             <translation>Select skin image</translation>
+        </message>
+        <message>
+            <source>Select tasks</source>
+            <translation>Select tasks</translation>
         </message>
         <message>
             <source>Select the language used throughout the application</source>
@@ -4724,10 +4804,6 @@
         <message>
             <source>Smart control releases unused heap memory while the app is idle. Active captures and pinned images are kept</source>
             <translation>Smart control releases unused heap memory while the app is idle. Active captures and pinned images are kept</translation>
-        </message>
-        <message>
-            <source>Smart control trims resident memory while the app is idle. The next use may briefly take longer</source>
-            <translation>Smart control trims resident memory while the app is idle. The next use may briefly take longer</translation>
         </message>
         <message>
             <source>Smart merge</source>
@@ -5384,24 +5460,64 @@
     <context>
         <name>SettingsVariableHelp</name>
         <message>
-            <source>%1: Application name</source>
-            <translation>%1: Application name</translation>
+            <source>Application name</source>
+            <translation>Application name</translation>
         </message>
         <message>
-            <source>%1: Current time</source>
-            <translation>%1: Current time</translation>
+            <source>Date and time</source>
+            <translation>Date and time</translation>
         </message>
         <message>
-            <source>%1: Window name</source>
-            <translation>%1: Window name</translation>
+            <source>Desktop</source>
+            <translation>Desktop</translation>
+        </message>
+        <message>
+            <source>Documents</source>
+            <translation>Documents</translation>
+        </message>
+        <message>
+            <source>Downloads</source>
+            <translation>Downloads</translation>
+        </message>
+        <message>
+            <source>Home</source>
+            <translation>Home</translation>
         </message>
         <message>
             <source>OK</source>
             <translation>OK</translation>
         </message>
         <message>
+            <source>Path prefix only</source>
+            <translation>Path prefix only</translation>
+        </message>
+        <message>
+            <source>Pictures</source>
+            <translation>Pictures</translation>
+        </message>
+        <message>
+            <source>Source display (Display-1, Display-2, or Multi)</source>
+            <translation>Source display (Display-1, Display-2, or Multi)</translation>
+        </message>
+        <message>
+            <source>System folders</source>
+            <translation>System folders</translation>
+        </message>
+        <message>
+            <source>Time and source</source>
+            <translation>Time and source</translation>
+        </message>
+        <message>
             <source>Variable description</source>
             <translation>Variable description</translation>
+        </message>
+        <message>
+            <source>Videos</source>
+            <translation>Videos</translation>
+        </message>
+        <message>
+            <source>Window name</source>
+            <translation>Window name</translation>
         </message>
     </context>
     <context>

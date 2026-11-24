@@ -1,4 +1,7 @@
 #include "snow_shot/presentation/screenshotcanvastoolstyles.h"
+#ifdef Q_OS_MACOS
+#include "snow_shot/presentation/apppermissionservice.h"
+#endif
 #include "eraser_toolbar_test_support.h"
 #include "window_close_shortcut_test_support.h"
 #include "../src/presentation/recording/recordingrenderjob.h"
@@ -48,6 +51,7 @@
 #include "snow_shot/platform/screenshotwindownames.h"
 #include "snow_recording.h"
 #include "widgets/button.h"
+#include "widgets/detail/window_modality.h"
 #include "antd_icons.h"
 #include "../src/presentation/recording/recordingaudiogainpopover.h"
 #include "widgets/popover.h"
@@ -240,7 +244,7 @@ int windowNameLookups = 0;
 QPointF windowNameLookupPoint;
 snow_shot::storage::ScreenshotWindowNameFields windowNameLookupFields;
 std::vector<std::uintptr_t> windowNameLookupExclusions;
-snow_shot::storage::ScreenshotWindowNames desktopWindowNames;
+snow_shot::storage::ScreenshotExportContext desktopWindowNames;
 QString recordingOutputPath;
 std::shared_future<void> clipDestroyGate;
 std::atomic<bool> clipDestroyEntered = false;
@@ -2077,6 +2081,16 @@ void effectsPreviewLifecycle() {
     pumpPreview();
     require(preview.generation() != stale->generation,
             "configuration must invalidate stale generations");
+    QWidget independent;
+    independent.show();
+    adqt::widgets::AdModal independentModal(&independent);
+    independentModal.setMode(adqt::widgets::AdModal::Mode::Window);
+    independentModal.open();
+    preview.setEligible(false);
+    preview.setEligible(true);
+    pumpPreview();
+    require(state->active, "an unrelated window's dialog must allow the recording preview");
+    independentModal.close();
     QDialog modal;
     modal.setModal(true);
     modal.show();
@@ -2333,21 +2347,26 @@ void recordingStatusPrompts() {
     }
     ThemeManager::instance().setThemeMode(previousTheme);
     palette()->recordingMicrophoneToggled(true);
+    // On macOS a format change computes preview dimensions on a worker before
+    // publishing the new prompt. Wait for that publication at each transition.
+    const auto waitForPrompt = [&](const QString& expected) {
+        ready.restart();
+        while (prompt->accessibleName() != expected && ready.elapsed() < 3000)
+            QCoreApplication::processEvents(QEventLoop::AllEvents, 50);
+        return prompt->accessibleName() == expected;
+    };
     for (const auto& format : {QStringLiteral("gif"), QStringLiteral("webp")}) {
         palette()->recordingOutputFormatChanged(format);
-        pumpPreview();
-        require(prompt->accessibleName() ==
-                    QStringLiteral("Format: %1; Microphone disabled; System audio disabled")
-                        .arg(format == QStringLiteral("gif") ? QStringLiteral("GIF")
-                                                             : QStringLiteral("WebP")),
-                "animated formats must show concise names and disabled audio icons");
+        require(
+            waitForPrompt(QStringLiteral("Format: %1; Microphone disabled; System audio disabled")
+                              .arg(format == QStringLiteral("gif") ? QStringLiteral("GIF")
+                                                                   : QStringLiteral("WebP"))),
+            "animated formats must show concise names and disabled audio icons");
         checkStatusColors(false, true);
         checkCentered();
     }
     palette()->recordingOutputFormatChanged(QStringLiteral("mp4"));
-    pumpPreview();
-    require(prompt->accessibleName() ==
-                QStringLiteral("Format: MP4; Microphone enabled; System audio enabled"),
+    require(waitForPrompt(QStringLiteral("Format: MP4; Microphone enabled; System audio enabled")),
             "switching back to video must restore the selected audio status");
     require(settings.setShowStatusPrompts(false), "disable status prompts in storage");
     pumpPreview();
@@ -3024,6 +3043,133 @@ void staleRetinaSizingCannotConfigureAnotherRegion() {
     QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     snow_shot::storage::RecordingSettings().setMouseTrailColor(Qt::transparent);
 }
+
+void regionDragDefersMacOSPreviewSync() {
+    using snow_shot::presentation::AppPermission;
+    using snow_shot::presentation::AppPermissionSnapshot;
+    using snow_shot::presentation::AppPermissionStatus;
+    const snow_shot::storage::RecordingSettings settings;
+    const auto savedTrail = settings.mouseTrailColor();
+    const auto restoreSettings = qScopeGuard([&] { settings.setMouseTrailColor(savedTrail); });
+    require(settings.setMouseTrailColor(Qt::red), "enable motion preview for the region drag");
+    std::promise<void> releaseDimensions;
+    auto releaseOnFailure = qScopeGuard([&] { releaseDimensions.set_value(); });
+    dimensionsGate = releaseDimensions.get_future().share();
+    dimensionsEntered = false;
+    holdDimensions = true;
+    const int initialCompletions = dimensionsCompleted.load();
+    const auto waitFor = [](auto condition, const char* message) {
+        QElapsedTimer timer;
+        timer.start();
+        while (!condition() && timer.elapsed() < 3000) {
+            QCoreApplication::processEvents();
+            QThread::msleep(1);
+        }
+        require(condition(), message);
+    };
+    int silentAdmissionChecks = 0;
+    int recordingPermissionChecks = 0;
+    bool permissionGranted = true;
+    ScreenRecordingController controller(testEffectsSource);
+    controller.setPermissionCheck([&](bool, bool, bool notify) {
+        ++(notify ? recordingPermissionChecks : silentAdmissionChecks);
+        return permissionGranted;
+    });
+    AppPermissionSnapshot snapshot;
+    snapshot.statuses.fill(AppPermissionStatus::Granted);
+    controller.setPreviewPermissionSnapshot(snapshot);
+    const auto setPermission = [&](AppPermission permission, AppPermissionStatus status) {
+        snapshot.statuses.at(static_cast<size_t>(permission)) = status;
+        controller.setPreviewPermissionSnapshot(snapshot);
+    };
+    const QRect initial(60, 60, 321, 239);
+    controller.open(initial);
+    waitFor([] { return dimensionsEntered.load(); }, "initial preview sizing must be in flight");
+    auto* area = recordingAreaWindow();
+    area->activateInput();
+    QCoreApplication::processEvents();
+    const auto preview = effectSources.back().lock();
+    require(preview && !preview->active, "preview must wait for initial sizing");
+    const auto borderPoint = [area] {
+        return area->mapToGlobal(QPoint(area->width() - 1, area->height() / 2));
+    };
+    const auto send = [area](QEvent::Type type, const QPoint& global) {
+        const QPoint local = area->mapFromGlobal(global);
+        QMouseEvent event(
+            type, local, local, global, type == QEvent::MouseMove ? Qt::NoButton : Qt::LeftButton,
+            type == QEvent::MouseButtonRelease ? Qt::NoButton : Qt::LeftButton, Qt::NoModifier);
+        QCoreApplication::sendEvent(area, &event);
+    };
+
+    const QPoint start = borderPoint();
+    send(QEvent::MouseButtonPress, start);
+    send(QEvent::MouseMove, start + QPoint(12, 0));
+    send(QEvent::MouseMove, start + QPoint(24, 0));
+    require(area->regionInteractionActive() &&
+                area->recordingRegion() == initial.adjusted(0, 0, 24, 0),
+            "the border must track live geometry during the drag");
+    releaseDimensions.set_value();
+    releaseOnFailure.dismiss();
+    waitFor([=] { return dimensionsCompleted > initialCompletions; },
+            "initial sizing must complete during the drag");
+    QElapsedTimer pollDeadline;
+    pollDeadline.start();
+    waitFor([&] { return pollDeadline.hasExpired(120); },
+            "allow the 50 ms sizing poll to run while dragging");
+    require(area->regionInteractionActive(), "the drag must stay active while sizing finishes");
+    require(silentAdmissionChecks == 0 && preview->configurations == 0 &&
+                dimensionsCompleted == initialCompletions + 1,
+            "moves and in-flight sizing completion must defer preview work");
+
+    const QRect resized = initial.adjusted(0, 0, 37, 0);
+    send(QEvent::MouseButtonRelease, start + QPoint(37, 0));
+    require(area->recordingRegion() == resized && !preview->active,
+            "release commits its exact position before resuming the preview");
+    waitFor([&] { return preview->active; }, "motion preview must resume after release");
+    require(preview->capture == resized && preview->configurations == 1,
+            "the resumed preview must use only the final region");
+
+    const QPoint nextStart = borderPoint();
+    send(QEvent::MouseButtonPress, nextStart);
+    send(QEvent::MouseMove, nextStart + QPoint(-20, 0));
+    require(!preview->active, "an old preview must pause during resize");
+    QKeyEvent escape(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
+    QCoreApplication::sendEvent(area, &escape);
+    require(!area->regionInteractionActive() && area->recordingRegion() == resized &&
+                !preview->active,
+            "cancelling restores geometry before resuming preview");
+    waitFor([&] { return preview->active; }, "motion preview must resume after cancellation");
+    require(preview->capture == resized && preview->configurations == 2 &&
+                dimensionsCompleted == initialCompletions + 2,
+            "cancelling must reuse the restored region's resolved size");
+
+    setPermission(AppPermission::InputMonitoring, AppPermissionStatus::Denied);
+    waitFor([&] { return !preview->active; }, "revoking input monitoring must stop motion preview");
+    setPermission(AppPermission::InputMonitoring, AppPermissionStatus::Granted);
+    waitFor([&] { return preview->active; },
+            "restoring input monitoring must resume motion preview");
+    require(dimensionsCompleted == initialCompletions + 2,
+            "input permission changes must reuse resolved dimensions");
+
+    setPermission(AppPermission::ScreenRecording, AppPermissionStatus::Denied);
+    waitFor([&] { return !preview->active; }, "revoking screen recording must stop preview");
+    setPermission(AppPermission::ScreenRecording, AppPermissionStatus::Granted);
+    waitFor([&] { return preview->active; }, "restoring screen recording must resume preview");
+    require(
+        preview->capture == resized && dimensionsCompleted == initialCompletions + 3 &&
+            silentAdmissionChecks == 0 && recordingPermissionChecks == 0,
+        "preview must resize and react to permission snapshots without live permission queries");
+
+    permissionGranted = false;
+    controller.startRecording();
+    require(recordingPermissionChecks == 1 && !controller.isRecording(),
+            "starting after the drag must check current recording permission");
+    palette()->recordingCloseRequested();
+    QString error;
+    require(!controller.startAutomation(resized, {}, &error) &&
+                error == QStringLiteral("permission_required") && silentAdmissionChecks == 1,
+            "automation must admit starts using current permissions");
+}
 #endif
 
 void permissionsAndExactLogicalRegion() {
@@ -3482,7 +3628,7 @@ int nativeEffectsPreviewCapture() {
 } // namespace
 
 namespace snow_shot::platform {
-storage::ScreenshotWindowNames
+storage::ScreenshotExportContext
 screenshotWindowNamesAtPoint(const QPointF& point, std::span<const std::uintptr_t> excludedWindows,
                              storage::ScreenshotWindowNameFields fields) {
     require(QThread::currentThread() == qApp->thread(),
@@ -4860,13 +5006,17 @@ void recordingErrorDialogs(bool followMouse) {
                     "recording failures must use an AntDesignQt error dialog with one OK action");
             auto* surface = modal->acceptButton()->window();
             require(modal->mode() == AdModal::Mode::Window && modal->centered() &&
-                        modal->windowModality() == Qt::ApplicationModal &&
-                        QApplication::activeModalWidget() == surface,
+                        modal->windowModality() ==
+                            (area ? Qt::WindowModal : Qt::ApplicationModal) &&
+                        (area ? adqt::widgets::detail::blockingModalWindow(area->windowHandle()) !=
+                                    nullptr
+                              : QApplication::activeModalWidget() == surface),
                     "recording error dialogs must block the recording controls");
             require(
                 modal->ownerWindow() == area && modal->windowModeDetached() == !area &&
-                    surface->windowHandle()->transientParent() ==
-                        (area ? area->windowHandle() : nullptr),
+                    (area ? area->windowHandle()->isAncestorOf(surface->windowHandle(),
+                                                               QWindow::IncludeTransients)
+                          : surface->windowHandle()->transientParent() == nullptr),
                 "recording error dialogs must use the area as their native owner while it exists");
             if (area) {
                 area->raise();
@@ -4963,11 +5113,15 @@ void recordingModalStacking(bool followMouse) {
 #endif
         require(modal->ownerWindow() == area && !modal->windowModeDetached() &&
                     modal->mode() == AdModal::Mode::Window &&
-                    modal->windowModality() == Qt::ApplicationModal &&
-                    surface->windowHandle()->transientParent() == area->windowHandle(),
+                    modal->windowModality() == Qt::WindowModal &&
+                    area->windowHandle()->isAncestorOf(surface->windowHandle(),
+                                                       QWindow::IncludeTransients),
                 "settings and render progress must share recording area ownership and modality");
-        require(QApplication::activeModalWidget() == surface,
-                "the visible recording modal must block recording controls");
+        QWindow other;
+        require(adqt::widgets::detail::blockingModalWindow(area->windowHandle()) &&
+                    adqt::widgets::detail::blockingModalWindow(toolbar->windowHandle()) &&
+                    !adqt::widgets::detail::blockingModalWindow(&other),
+                "the recording modal blocks its controls and permits independent capture");
         requireModalCenteredOnArea(modal, anchor, screen);
     };
     const QPointer<AdModal> settingsGuard(settings);
@@ -5280,8 +5434,8 @@ void recordingPostProcessingLifecycle() {
         QPointer<AdModal> modal =
             controller.findChild<AdModal*>(QStringLiteral("screenRecordingRenderModal"));
         require(modal && modal->isOpen() && !modal->windowModeDetached() &&
-                    modal->windowModality() == Qt::ApplicationModal && modal->ownerWindow() == area,
-                "rendering must open an application modal anchored to the recording area");
+                    modal->windowModality() == Qt::WindowModal && modal->ownerWindow() == area,
+                "render progress must be modal to the recording area");
         require(areaInput.blocked && toolbarInput.blocked,
                 "render progress must block clicks on the recording area and toolbar");
         auto* renderWindow = modal->contentWidget()->window();
@@ -8962,6 +9116,12 @@ template <typename Application> int runRecordingControllerTests(Application& app
         recordingAreaHistoryTests();
         return 0;
     }
+#ifdef Q_OS_MACOS
+    if (app.arguments().contains(QStringLiteral("--region-drag-preview-only"))) {
+        regionDragDefersMacOSPreviewSync();
+        return 0;
+    }
+#endif
     const QString preservationPrefix = QStringLiteral("--store-preservation-case=");
     for (const auto& argument : app.arguments()) {
         if (argument.startsWith(preservationPrefix)) {
@@ -9834,6 +9994,7 @@ template <typename Application> int runRecordingControllerTests(Application& app
 #ifdef Q_OS_MACOS
     destructionDoesNotBlockNativeWorkers();
     staleRetinaSizingCannotConfigureAnotherRegion();
+    regionDragDefersMacOSPreviewSync();
 #endif
     require(snow_shot::storage::RecordingSettings().setSeparateAudioTracks(false),
             "restore mixed recording audio");

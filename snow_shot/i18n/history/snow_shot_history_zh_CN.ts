@@ -15,6 +15,10 @@
     <context>
         <name>HistoryEntryWidget</name>
         <message>
+            <source>%1 x %2 px</source>
+            <translation>%1 × %2 像素</translation>
+        </message>
+        <message>
             <source>%1 x %2 px  ·  %3 display(s)</source>
             <translation>%1 x %2 像素  ·  %3 个显示器</translation>
         </message>
@@ -61,6 +65,10 @@
         <message>
             <source>Focused window</source>
             <translation>焦点窗口</translation>
+        </message>
+        <message>
+            <source>Image compression</source>
+            <translation>图像压缩</translation>
         </message>
         <message>
             <source>Image editing</source>
@@ -1634,6 +1642,10 @@ Files:
             <translation>已隐藏</translation>
         </message>
         <message>
+            <source>Image compression</source>
+            <translation>图像压缩</translation>
+        </message>
+        <message>
             <source>Image editing</source>
             <translation>图像编辑</translation>
         </message>
@@ -1942,6 +1954,10 @@ Files:
             <translation>取消</translation>
         </message>
         <message>
+            <source>Checkerboard</source>
+            <translation>棋盘格</translation>
+        </message>
+        <message>
             <source>Click-through</source>
             <translation>鼠标穿透</translation>
         </message>
@@ -1994,6 +2010,10 @@ Files:
         <message>
             <source>Copy original content</source>
             <translation>复制原始内容</translation>
+        </message>
+        <message>
+            <source>Copy text to clipboard</source>
+            <translation>复制文本到剪贴板</translation>
         </message>
         <message>
             <source>Copy to clipboard</source>
@@ -2096,6 +2116,10 @@ Files:
             <translation>隐藏其他窗口</translation>
         </message>
         <message>
+            <source>Image compression</source>
+            <translation>图像压缩</translation>
+        </message>
+        <message>
             <source>Image editing</source>
             <translation>图像编辑</translation>
         </message>
@@ -2118,6 +2142,10 @@ Files:
         <message>
             <source>Increase speed</source>
             <translation>提高速度</translation>
+        </message>
+        <message>
+            <source>Keep transparent</source>
+            <translation>保持透明</translation>
         </message>
         <message>
             <source>Live content is unavailable. Retrying...</source>
@@ -2286,10 +2314,6 @@ Files:
             <translation>无法捕获窗口的当前内容</translation>
         </message>
         <message>
-            <source>The image could not be saved automatically: %1</source>
-            <translation>无法自动保存图像：%1</translation>
-        </message>
-        <message>
             <source>The new content could not be loaded</source>
             <translation>无法加载新内容</translation>
         </message>
@@ -2332,6 +2356,10 @@ Files:
         <message>
             <source>Translation results</source>
             <translation>翻译结果</translation>
+        </message>
+        <message>
+            <source>Transparent layer</source>
+            <translation>透明图层</translation>
         </message>
         <message>
             <source>Unavailable</source>
@@ -2602,6 +2630,10 @@ Files:
         <message>
             <source>Copy files to clipboard</source>
             <translation>复制文件到剪贴板</translation>
+        </message>
+        <message>
+            <source>Copy text to clipboard</source>
+            <translation>复制文本到剪贴板</translation>
         </message>
         <message>
             <source>Delete empty groups</source>

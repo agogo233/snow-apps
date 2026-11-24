@@ -332,6 +332,8 @@ ScreenshotOcrController::ScreenshotOcrController(ScreenshotOcrControllerContext 
                 return !m_copyAndEndCapture && (!m_context.shouldRenderTextBackground ||
                                                 m_context.shouldRenderTextBackground());
             },
+            {},
+            Qt::ApplicationModal,
         },
         this);
     connect(m_session.get(), &ScreenshotRecognitionSessionController::textEditingChanged, this,
@@ -573,7 +575,8 @@ void ScreenshotOcrController::scheduleCopyRecognitionAndEndCapture() {
     });
 }
 
-bool ScreenshotOcrController::copyRecognitionToClipboard(bool endCapture, bool copyFullTextResult) {
+bool ScreenshotOcrController::copyRecognitionToClipboard(bool endCapture, bool copyFullTextResult,
+                                                         std::function<void(QImage)> copyImage) {
     if (!m_active || QApplication::clipboard() == nullptr) {
         return false;
     }
@@ -639,8 +642,9 @@ bool ScreenshotOcrController::copyRecognitionToClipboard(bool endCapture, bool c
         }
     }
     // Conversion toolbar Copy exports source; selection Copy is handled inside the preview.
-    const bool copied = !copyFullTextResult && !m_session->conversionModeActive() &&
-                        m_recognitionWindow != nullptr &&
+    const bool resolveTranslation = copyImage && m_session->translating();
+    const bool copied = !resolveTranslation && !copyFullTextResult &&
+                        !m_session->conversionModeActive() && m_recognitionWindow != nullptr &&
                         m_recognitionWindow->copyVisibleContentToClipboard();
     if (!copied) {
         std::unique_ptr<QMimeData> mimeData =
@@ -651,6 +655,10 @@ bool ScreenshotOcrController::copyRecognitionToClipboard(bool endCapture, bool c
                                                        "Unable to copy translation results"),
                            true);
             return false;
+        }
+        if (copyImage && mimeData->hasImage()) {
+            copyImage(qvariant_cast<QImage>(mimeData->imageData()));
+            return true;
         }
         QApplication::clipboard()->setMimeData(mimeData.release(), QClipboard::Clipboard);
     }

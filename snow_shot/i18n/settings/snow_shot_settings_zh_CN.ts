@@ -1618,10 +1618,6 @@
             <translation>启用非移动工具时，允许从选区边缘调整选区大小</translation>
         </message>
         <message>
-            <source>Also copy the screenshot to the clipboard when pinning it to screen</source>
-            <translation>将截图固定到屏幕时，同时将截图复制到剪贴板</translation>
-        </message>
-        <message>
             <source>Always</source>
             <translation>始终</translation>
         </message>
@@ -1726,6 +1722,18 @@
             <translation>适用于三种皮肤。覆盖模式填满各个界面并裁剪边缘，适应模式显示完整图像</translation>
         </message>
         <message>
+            <source>Applies to pins created from the screenshot window</source>
+            <translation>适用于从截图窗口固定到屏幕的截图</translation>
+        </message>
+        <message>
+            <source>Applies to standard, scrolling, monitor, and focused-window captures</source>
+            <translation>适用于普通截图、滚动截图、当前显示器截图和焦点窗口截图</translation>
+        </message>
+        <message>
+            <source>Applies when Copy current view copies an image</source>
+            <translation>在「复制当前视图」复制图像时执行</translation>
+        </message>
+        <message>
             <source>Apply to recognized text when editing or copying</source>
             <translation>编辑或复制识别文字时应用</translation>
         </message>
@@ -1774,8 +1782,8 @@
             <translation>自动识别二维码</translation>
         </message>
         <message>
-            <source>Auto-save after execution</source>
-            <translation>执行后自动保存</translation>
+            <source>Auto-save</source>
+            <translation>自动保存</translation>
         </message>
         <message>
             <source>Auto-save image filename format</source>
@@ -2190,6 +2198,10 @@
             <translation>选择何时可以在固定到屏幕的截图上选择识别出的文本</translation>
         </message>
         <message>
+            <source>Choose when to play the shutter sound</source>
+            <translation>选择在哪些截图场景播放快门声</translation>
+        </message>
+        <message>
             <source>Choose where images are written for automatic save and copy-file actions</source>
             <translation>选择自动保存和复制文件操作写入图像的位置</translation>
         </message>
@@ -2198,8 +2210,8 @@
             <translation>选择录制输出文件的保存位置</translation>
         </message>
         <message>
-            <source>Choose which actions also save an image in the selected image format and save directory</source>
-            <translation>选择执行哪些操作时，同时以所选图像格式保存到指定目录</translation>
+            <source>Choose whether to keep editable screenshot sessions, only final images, or no new history</source>
+            <translation>选择保留可编辑的截图会话、仅保留最终图像或停用新历史记录</translation>
         </message>
         <message>
             <source>Choose which fullscreen windows trigger automatic disabling</source>
@@ -2208,6 +2220,10 @@
         <message>
             <source>Choose which inputs to disable</source>
             <translation>选择要禁用的输入功能</translation>
+        </message>
+        <message>
+            <source>Choose which tasks run after a successful image export</source>
+            <translation>选择图像导出成功后执行的任务</translation>
         </message>
         <message>
             <source>Clear</source>
@@ -2274,6 +2290,10 @@
             <translation>颜色拾取器显示模式</translation>
         </message>
         <message>
+            <source>Compress selected images</source>
+            <translation>压缩选中的图像</translation>
+        </message>
+        <message>
             <source>Compression level</source>
             <translation>压缩级别</translation>
         </message>
@@ -2338,10 +2358,6 @@
             <translation>复制</translation>
         </message>
         <message>
-            <source>Copy after pinning to screen</source>
-            <translation>固定到屏幕后复制</translation>
-        </message>
-        <message>
             <source>Copy after text recognition</source>
             <translation>文本识别后复制</translation>
         </message>
@@ -2362,12 +2378,8 @@
             <translation>复制颜色</translation>
         </message>
         <message>
-            <source>Copy current monitor</source>
-            <translation>复制当前显示器</translation>
-        </message>
-        <message>
-            <source>Copy focused window</source>
-            <translation>复制焦点窗口</translation>
+            <source>Copy file</source>
+            <translation>复制文件</translation>
         </message>
         <message>
             <source>Copy image file to clipboard</source>
@@ -2378,20 +2390,12 @@
             <translation>复制原始内容</translation>
         </message>
         <message>
-            <source>Copy pinned window</source>
-            <translation>复制固定到屏幕窗口</translation>
-        </message>
-        <message>
             <source>Copy recording</source>
             <translation>复制录制内容</translation>
         </message>
         <message>
             <source>Copy screenshot</source>
             <translation>复制截图</translation>
-        </message>
-        <message>
-            <source>Copy scrolling screenshot</source>
-            <translation>复制滚动截图</translation>
         </message>
         <message>
             <source>Copy text</source>
@@ -2508,6 +2512,10 @@
         <message>
             <source>Customize the screenshot action toolbar</source>
             <translation>自定义截图操作工具栏</translation>
+        </message>
+        <message>
+            <source>Cycle annotation tool options</source>
+            <translation>循环切换标注工具选项</translation>
         </message>
         <message>
             <source>DXGI</source>
@@ -2846,6 +2854,10 @@
             <translation>导出设置</translation>
         </message>
         <message>
+            <source>Export tasks</source>
+            <translation>导出任务</translation>
+        </message>
+        <message>
             <source>Extended features settings</source>
             <translation>扩展功能设置</translation>
         </message>
@@ -2908,6 +2920,10 @@
         <message>
             <source>Focused window</source>
             <translation>焦点窗口</translation>
+        </message>
+        <message>
+            <source>Focused window and current display</source>
+            <translation>焦点窗口和当前显示器</translation>
         </message>
         <message>
             <source>Follow mouse movement</source>
@@ -3214,6 +3230,10 @@
             <translation>保留已关闭窗口以便恢复；禁用不会删除现有记录</translation>
         </message>
         <message>
+            <source>Keep full history</source>
+            <translation>保留完整历史</translation>
+        </message>
+        <message>
             <source>Keep group main buttons visible</source>
             <translation>保持显示分组主按钮</translation>
         </message>
@@ -3222,12 +3242,12 @@
             <translation>永久保留记录</translation>
         </message>
         <message>
-            <source>Keep screenshot annotations editable with undo and redo history. Pinned images retain the original layout without layout compaction</source>
-            <translation>保留截图标注的可编辑状态及撤销、重做历史。固定的图像保留原始布局，不使用紧凑布局</translation>
+            <source>Keep results only</source>
+            <translation>仅保留结果</translation>
         </message>
         <message>
-            <source>Keep screenshots available after the application closes</source>
-            <translation>关闭应用程序后仍保留可用的截图</translation>
+            <source>Keep screenshot annotations editable with undo and redo history. Pinned images retain the original layout without layout compaction</source>
+            <translation>保留截图标注的可编辑状态及撤销、重做历史。固定的图像保留原始布局，不使用紧凑布局</translation>
         </message>
         <message>
             <source>Keep selection width and height consistent</source>
@@ -3562,6 +3582,10 @@
             <translation>正常</translation>
         </message>
         <message>
+            <source>Normal screenshot</source>
+            <translation>普通截图</translation>
+        </message>
+        <message>
             <source>Notify after export completes</source>
             <translation>导出完成后通知</translation>
         </message>
@@ -3592,6 +3616,10 @@
         <message>
             <source>Open at login</source>
             <translation>登录时打开</translation>
+        </message>
+        <message>
+            <source>Open image compression for each selected image file, or an empty window if no images are selected</source>
+            <translation>为每个选中的图像文件打开图像压缩窗口；未选中图像时打开空窗口</translation>
         </message>
         <message>
             <source>Open image editing for each selected image file, or an empty window if no images are selected</source>
@@ -3702,20 +3730,12 @@
             <translation>权限状态与授权</translation>
         </message>
         <message>
-            <source>Persistent screenshot history</source>
-            <translation>持久化截图历史</translation>
-        </message>
-        <message>
             <source>Pin clipboard content to screen</source>
             <translation>将剪贴板内容固定到屏幕</translation>
         </message>
         <message>
             <source>Pin images, supported files, formatted text, or HTML from the clipboard to the screen</source>
             <translation>将剪贴板中的图像、支持的文件、格式化文本或 HTML 固定到屏幕</translation>
-        </message>
-        <message>
-            <source>Pin screenshot to screen</source>
-            <translation>将截图固定到屏幕</translation>
         </message>
         <message>
             <source>Pin selected files to screen</source>
@@ -3812,14 +3832,6 @@
         <message>
             <source>Play / pause</source>
             <translation>播放 / 暂停</translation>
-        </message>
-        <message>
-            <source>Play a shutter sound when capturing the focused window or current display</source>
-            <translation>截取焦点窗口或当前显示器时播放快门声音</translation>
-        </message>
-        <message>
-            <source>Play a shutter sound when screenshot capture starts</source>
-            <translation>开始截图时播放快门声音</translation>
         </message>
         <message>
             <source>Play saved GIF, APNG, and WebP recordings repeatedly</source>
@@ -4118,6 +4130,10 @@
             <translation>保留已关闭窗口</translation>
         </message>
         <message>
+            <source>Retain screenshot history</source>
+            <translation>保留截图历史</translation>
+        </message>
+        <message>
             <source>Retention limits apply only to closed windows; retained windows are always protected</source>
             <translation>存储限制仅适用于已关闭窗口；保留中的窗口始终受到保护</translation>
         </message>
@@ -4140,6 +4156,70 @@
         <message>
             <source>Run after %1 seconds</source>
             <translation>延时 %1 秒执行</translation>
+        </message>
+        <message>
+            <source>Run after copying a pinned window</source>
+            <translation>固定到屏幕窗口复制后执行</translation>
+        </message>
+        <message>
+            <source>Run after copying a screenshot</source>
+            <translation>截图复制后执行</translation>
+        </message>
+        <message>
+            <source>Run after pinning a screenshot to the screen</source>
+            <translation>截图固定到屏幕后执行</translation>
+        </message>
+        <message>
+            <source>Run after printing a pinned window</source>
+            <translation>固定到屏幕窗口打印后执行</translation>
+        </message>
+        <message>
+            <source>Run after printing a screenshot</source>
+            <translation>截图打印后执行</translation>
+        </message>
+        <message>
+            <source>Run after saving a pinned window</source>
+            <translation>固定到屏幕窗口保存后执行</translation>
+        </message>
+        <message>
+            <source>Run after saving a screenshot</source>
+            <translation>截图保存后执行</translation>
+        </message>
+        <message>
+            <source>Run after sharing a pinned window via AirDrop</source>
+            <translation>固定到屏幕窗口通过隔空投送分享后执行</translation>
+        </message>
+        <message>
+            <source>Run after sharing a screenshot via AirDrop</source>
+            <translation>截图通过隔空投送分享后执行</translation>
+        </message>
+        <message>
+            <source>Run after uploading a pinned window</source>
+            <translation>固定到屏幕窗口上传后执行</translation>
+        </message>
+        <message>
+            <source>Run after uploading a screenshot</source>
+            <translation>截图上传后执行</translation>
+        </message>
+        <message>
+            <source>Runs after a successful manual cloud upload</source>
+            <translation>手动上传到云端成功后执行</translation>
+        </message>
+        <message>
+            <source>Runs after each successful Quick save or Save as file</source>
+            <translation>每次快速保存或另存为文件成功后执行</translation>
+        </message>
+        <message>
+            <source>Runs after each successful individual save</source>
+            <translation>每次单独保存成功后执行</translation>
+        </message>
+        <message>
+            <source>Runs after the print job is submitted</source>
+            <translation>打印作业提交后执行</translation>
+        </message>
+        <message>
+            <source>Runs when AirDrop confirms sharing</source>
+            <translation>在隔空投送确认分享成功后执行</translation>
         </message>
         <message>
             <source>Save as file</source>
@@ -4330,10 +4410,6 @@
             <translation>截图快捷键和操作</translation>
         </message>
         <message>
-            <source>Screenshot sound notification</source>
-            <translation>截图声音通知</translation>
-        </message>
-        <message>
             <source>Screenshot toolbar</source>
             <translation>截图工具栏</translation>
         </message>
@@ -4376,6 +4452,10 @@
         <message>
             <source>Select skin image</source>
             <translation>选择皮肤图像</translation>
+        </message>
+        <message>
+            <source>Select tasks</source>
+            <translation>选择任务</translation>
         </message>
         <message>
             <source>Select the language used throughout the application</source>
@@ -4724,10 +4804,6 @@
         <message>
             <source>Smart control releases unused heap memory while the app is idle. Active captures and pinned images are kept</source>
             <translation>智能控制会在应用空闲时释放未使用的堆内存。正在进行的捕获和已固定到屏幕的图像会保留</translation>
-        </message>
-        <message>
-            <source>Smart control trims resident memory while the app is idle. The next use may briefly take longer</source>
-            <translation>智能控制会在应用空闲时缩减驻留内存。下次使用时可能会短暂增加响应时间</translation>
         </message>
         <message>
             <source>Smart merge</source>
@@ -5384,24 +5460,64 @@
     <context>
         <name>SettingsVariableHelp</name>
         <message>
-            <source>%1: Application name</source>
-            <translation>%1：应用程序名称</translation>
+            <source>Application name</source>
+            <translation>应用程序名称</translation>
         </message>
         <message>
-            <source>%1: Current time</source>
-            <translation>%1: 当前时间</translation>
+            <source>Date and time</source>
+            <translation>日期和时间</translation>
         </message>
         <message>
-            <source>%1: Window name</source>
-            <translation>%1：窗口名称</translation>
+            <source>Desktop</source>
+            <translation>桌面</translation>
+        </message>
+        <message>
+            <source>Documents</source>
+            <translation>文档</translation>
+        </message>
+        <message>
+            <source>Downloads</source>
+            <translation>下载</translation>
+        </message>
+        <message>
+            <source>Home</source>
+            <translation>主目录</translation>
         </message>
         <message>
             <source>OK</source>
             <translation>确定</translation>
         </message>
         <message>
+            <source>Path prefix only</source>
+            <translation>仅用于路径开头</translation>
+        </message>
+        <message>
+            <source>Pictures</source>
+            <translation>图片</translation>
+        </message>
+        <message>
+            <source>Source display (Display-1, Display-2, or Multi)</source>
+            <translation>来源显示器（Display-1、Display-2 或 Multi）</translation>
+        </message>
+        <message>
+            <source>System folders</source>
+            <translation>系统目录</translation>
+        </message>
+        <message>
+            <source>Time and source</source>
+            <translation>时间与来源</translation>
+        </message>
+        <message>
             <source>Variable description</source>
             <translation>变量说明</translation>
+        </message>
+        <message>
+            <source>Videos</source>
+            <translation>视频</translation>
+        </message>
+        <message>
+            <source>Window name</source>
+            <translation>窗口名称</translation>
         </message>
     </context>
     <context>

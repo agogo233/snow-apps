@@ -15,6 +15,10 @@
     <context>
         <name>HistoryEntryWidget</name>
         <message>
+            <source>%1 x %2 px</source>
+            <translation>%1 x %2 px</translation>
+        </message>
+        <message>
             <source>%1 x %2 px  ·  %3 display(s)</source>
             <translation>%1 x %2 px  ·  %3 display(s)</translation>
         </message>
@@ -61,6 +65,10 @@
         <message>
             <source>Focused window</source>
             <translation>Focused window</translation>
+        </message>
+        <message>
+            <source>Image compression</source>
+            <translation>Image compression</translation>
         </message>
         <message>
             <source>Image editing</source>
@@ -1636,6 +1644,10 @@ Files:
             <translation>Hidden</translation>
         </message>
         <message>
+            <source>Image compression</source>
+            <translation>Image compression</translation>
+        </message>
+        <message>
             <source>Image editing</source>
             <translation>Image editing</translation>
         </message>
@@ -1949,6 +1961,10 @@ Files:
             <translation>Cancel</translation>
         </message>
         <message>
+            <source>Checkerboard</source>
+            <translation>Checkerboard</translation>
+        </message>
+        <message>
             <source>Click-through</source>
             <translation>Click-through</translation>
         </message>
@@ -2002,6 +2018,10 @@ Files:
         <message>
             <source>Copy original content</source>
             <translation>Copy original content</translation>
+        </message>
+        <message>
+            <source>Copy text to clipboard</source>
+            <translation>Copy text to clipboard</translation>
         </message>
         <message>
             <source>Copy to clipboard</source>
@@ -2104,6 +2124,10 @@ Files:
             <translation>Hide other windows</translation>
         </message>
         <message>
+            <source>Image compression</source>
+            <translation>Image compression</translation>
+        </message>
+        <message>
             <source>Image editing</source>
             <translation>Image editing</translation>
         </message>
@@ -2126,6 +2150,10 @@ Files:
         <message>
             <source>Increase speed</source>
             <translation>Increase speed</translation>
+        </message>
+        <message>
+            <source>Keep transparent</source>
+            <translation>Keep transparent</translation>
         </message>
         <message>
             <source>Live content is unavailable. Retrying...</source>
@@ -2295,10 +2323,6 @@ Files:
             <translation>The current window content cannot be captured</translation>
         </message>
         <message>
-            <source>The image could not be saved automatically: %1</source>
-            <translation>The image could not be saved automatically: %1</translation>
-        </message>
-        <message>
             <source>The new content could not be loaded</source>
             <translation>The new content could not be loaded</translation>
         </message>
@@ -2341,6 +2365,10 @@ Files:
         <message>
             <source>Translation results</source>
             <translation>Translation results</translation>
+        </message>
+        <message>
+            <source>Transparent layer</source>
+            <translation>Transparent layer</translation>
         </message>
         <message>
             <source>Unavailable</source>
@@ -2612,6 +2640,10 @@ Files:
         <message>
             <source>Copy files to clipboard</source>
             <translation>Copy files to clipboard</translation>
+        </message>
+        <message>
+            <source>Copy text to clipboard</source>
+            <translation>Copy text to clipboard</translation>
         </message>
         <message>
             <source>Delete empty groups</source>

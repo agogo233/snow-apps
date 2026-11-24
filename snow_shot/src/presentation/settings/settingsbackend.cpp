@@ -278,9 +278,6 @@ storage::CaptureHistoryPolicy defaultHistoryPolicy() {
     policy.keepPermanently = storage::ConfigurationSchema::defaultValue(
                                  QStringLiteral("capture_history/keep_permanently"))
                                  .toBool();
-    policy.enabled =
-        storage::ConfigurationSchema::defaultValue(QStringLiteral("capture_history/enabled"))
-            .toBool();
     policy.retentionDays =
         storage::ConfigurationSchema::defaultValue(QStringLiteral("capture_history/retention_days"))
             .toInt();
@@ -522,6 +519,9 @@ QString BuiltInSettingsBackend::selectOptionsError(SettingsSelectBinding binding
 }
 
 bool BuiltInSettingsBackend::selectEnabled(SettingsSelectBinding binding) const {
+    if (binding == SettingsSelectBinding::HistoryCompressionLevel)
+        return storage::ApplicationStorage::instance().captureHistoryPolicy().mode !=
+               storage::CaptureHistoryMode::ResultsOnly;
     if (app::distribution::isStoreManaged() && binding == SettingsSelectBinding::UpdateMode)
         return false;
 #if SNOW_SHOT_ENABLE_TEXT_TRANSLATION
@@ -654,6 +654,9 @@ QVariant BuiltInSettingsBackend::selectValue(SettingsSelectBinding binding) cons
         return storage::ScreenshotSettings().apiMode();
     case SettingsSelectBinding::ScreenRecordingApiMode:
         return storage::RecordingSettings().apiMode();
+    case SettingsSelectBinding::HistoryRetentionMode:
+        return storage::captureHistoryModeId(
+            storage::ApplicationStorage::instance().captureHistoryPolicy().mode);
     case SettingsSelectBinding::SmartSelection:
         return smartSelectionModeId(storage::ApplicationStorage::instance().smartSelectionMode());
     case SettingsSelectBinding::WindowElementApi:
@@ -915,6 +918,16 @@ bool BuiltInSettingsBackend::applySelectValue(SettingsSelectBinding binding,
         return storage::ScreenshotSettings().setApiMode(value.toString());
     case SettingsSelectBinding::ScreenRecordingApiMode:
         return storage::RecordingSettings().setApiMode(value.toString());
+    case SettingsSelectBinding::HistoryRetentionMode: {
+        const auto normalized = storage::ConfigurationSchema::normalize(
+            QStringLiteral("capture_history/retention_mode"), QJsonValue::fromVariant(value));
+        if (!normalized.valid)
+            return false;
+        auto& appStorage = storage::ApplicationStorage::instance();
+        auto policy = appStorage.captureHistoryPolicy();
+        policy.mode = storage::captureHistoryModeFromId(normalized.value.toString());
+        return appStorage.requestCaptureHistoryPolicy(policy);
+    }
     case SettingsSelectBinding::SmartSelection: {
         const auto normalized = storage::ConfigurationSchema::normalize(
             QStringLiteral("screenshot_selection/smart_selection"), QJsonValue::fromVariant(value));
@@ -1009,8 +1022,6 @@ bool BuiltInSettingsBackend::switchValue(SettingsSwitchBinding binding) const {
             .configuration()
             .value(QStringLiteral("text_recognition/hardware_acceleration"))
             .toBool();
-    case SettingsSwitchBinding::HistoryEnabled:
-        return storage::ApplicationStorage::instance().captureHistoryPolicy().enabled;
     case SettingsSwitchBinding::PinnedHistoryEnabled:
         return storage::ApplicationStorage::instance().pinnedWindowPolicy().enabled;
     case SettingsSwitchBinding::HistoryKeepPermanently:
@@ -1047,10 +1058,6 @@ bool BuiltInSettingsBackend::switchValue(SettingsSwitchBinding binding) const {
         return storage::ScreenshotSettings().showCursor();
     case SettingsSwitchBinding::ScreenshotCaptureUiInScrollingScreenshot:
         return storage::ScreenshotSettings().captureUiInScrollingScreenshot();
-    case SettingsSwitchBinding::ScreenshotShutterSoundNotification:
-        return storage::ScreenshotSettings().shutterSoundNotification();
-    case SettingsSwitchBinding::ScreenshotSoundNotification:
-        return storage::ScreenshotSettings().screenshotSoundNotification();
     case SettingsSwitchBinding::ScreenshotAutoRecognizeQrCode:
 #if SNOW_SHOT_ENABLE_QR_RECOGNITION
         return storage::ScreenshotSettings().autoRecognizeQrCode();
@@ -1063,8 +1070,6 @@ bool BuiltInSettingsBackend::switchValue(SettingsSwitchBinding binding) const {
         return storage::ScreenshotSettings().restoreOriginalScreenColors();
     case SettingsSwitchBinding::ScreenshotCopyImageFileToClipboard:
         return storage::ScreenshotSettings().copyImageFileToClipboard();
-    case SettingsSwitchBinding::ScreenshotCopyAfterPinningToScreen:
-        return storage::ScreenshotSettings().copyAfterPinningToScreen();
     case SettingsSwitchBinding::ScreenshotKeepAnnotationsEditableAfterPinningToScreen:
         return storage::ScreenshotSettings().keepAnnotationsEditableAfterPinningToScreen();
     case SettingsSwitchBinding::ScreenshotShowSaveResult:
@@ -1358,12 +1363,6 @@ bool BuiltInSettingsBackend::applySwitchValue(SettingsSwitchBinding binding, boo
             emit synchronized();
         return accepted;
     }
-    if (binding == SettingsSwitchBinding::ScreenshotShutterSoundNotification) {
-        return storage::ScreenshotSettings().setShutterSoundNotification(value);
-    }
-    if (binding == SettingsSwitchBinding::ScreenshotSoundNotification) {
-        return storage::ScreenshotSettings().setScreenshotSoundNotification(value);
-    }
     if (binding == SettingsSwitchBinding::ScreenshotAutoRecognizeQrCode) {
 #if SNOW_SHOT_ENABLE_QR_RECOGNITION
         return storage::ScreenshotSettings().setAutoRecognizeQrCode(value);
@@ -1409,9 +1408,6 @@ bool BuiltInSettingsBackend::applySwitchValue(SettingsSwitchBinding binding, boo
     }
     if (binding == SettingsSwitchBinding::ScreenshotCopyImageFileToClipboard) {
         return storage::ScreenshotSettings().setCopyImageFileToClipboard(value);
-    }
-    if (binding == SettingsSwitchBinding::ScreenshotCopyAfterPinningToScreen) {
-        return storage::ScreenshotSettings().setCopyAfterPinningToScreen(value);
     }
     if (binding == SettingsSwitchBinding::ScreenshotKeepAnnotationsEditableAfterPinningToScreen) {
         return storage::ScreenshotSettings().setKeepAnnotationsEditableAfterPinningToScreen(value);
@@ -1562,9 +1558,6 @@ bool BuiltInSettingsBackend::applySwitchValue(SettingsSwitchBinding binding, boo
 
     auto policy = storage::ApplicationStorage::instance().captureHistoryPolicy();
     switch (binding) {
-    case SettingsSwitchBinding::HistoryEnabled:
-        policy.enabled = value;
-        break;
     case SettingsSwitchBinding::PinnedHistoryEnabled: {
         auto pinnedPolicy = storage::ApplicationStorage::instance().pinnedWindowPolicy();
         pinnedPolicy.enabled = value;
@@ -1592,14 +1585,11 @@ bool BuiltInSettingsBackend::applySwitchValue(SettingsSwitchBinding binding, boo
     case SettingsSwitchBinding::ScreenshotQuickSelectionModification:
     case SettingsSwitchBinding::ScreenshotShowCursor:
     case SettingsSwitchBinding::ScreenshotCaptureUiInScrollingScreenshot:
-    case SettingsSwitchBinding::ScreenshotShutterSoundNotification:
-    case SettingsSwitchBinding::ScreenshotSoundNotification:
     case SettingsSwitchBinding::ScreenshotAutoRecognizeQrCode:
     case SettingsSwitchBinding::ScreenshotConfirmBeforeExitingViaShortcut:
     case SettingsSwitchBinding::ScreenshotRestoreOriginalScreenColors:
     case SettingsSwitchBinding::ScreenshotCopyImageFileToClipboard:
     case SettingsSwitchBinding::ScreenshotShowSaveResult:
-    case SettingsSwitchBinding::ScreenshotCopyAfterPinningToScreen:
     case SettingsSwitchBinding::ScreenshotKeepAnnotationsEditableAfterPinningToScreen:
     case SettingsSwitchBinding::SaveRecognitionResultAsImage:
     case SettingsSwitchBinding::ShowOriginalImagePreview:
@@ -1762,10 +1752,12 @@ QVariantList BuiltInSettingsBackend::multiSelectValue(SettingsMultiSelectBinding
         for (const QString& value : storage::TraySettings().menuOptions()) {
             values.push_back(value);
         }
-    } else if (binding == SettingsMultiSelectBinding::ScreenshotAutoSaveAfterExecution) {
-        for (const QString& value : storage::ScreenshotSettings().autoSaveAfterExecutionActions()) {
+    } else if (const auto trigger = exportTriggerForBinding(binding)) {
+        for (const auto& value :
+             storage::exportTaskIds(storage::ScreenshotSettings().exportTasks(*trigger)))
             values.push_back(value);
-        }
+    } else if (binding == SettingsMultiSelectBinding::ScreenshotShutterSoundNotification) {
+        return QVariant(storage::ScreenshotSettings().shutterSoundTargets()).toList();
     } else if (binding == SettingsMultiSelectBinding::FullscreenDisableScope) {
         for (const QString& value : storage::GlobalShortcutSettings().fullscreenDisableScope()) {
             values.push_back(value);
@@ -1790,8 +1782,11 @@ bool BuiltInSettingsBackend::applyMultiSelectValue(SettingsMultiSelectBinding bi
     if (binding == SettingsMultiSelectBinding::TrayMenuOptions) {
         return storage::TraySettings().setMenuOptions(tools);
     }
-    if (binding == SettingsMultiSelectBinding::ScreenshotAutoSaveAfterExecution) {
-        return storage::ScreenshotSettings().setAutoSaveAfterExecutionActions(tools);
+    if (const auto trigger = exportTriggerForBinding(binding))
+        return storage::ApplicationStorage::instance().configuration().setValue(
+            storage::exportTaskRow(*trigger).key.toString(), QJsonArray::fromStringList(tools));
+    if (binding == SettingsMultiSelectBinding::ScreenshotShutterSoundNotification) {
+        return storage::ScreenshotSettings().setShutterSoundTargets(tools);
     }
     if (binding == SettingsMultiSelectBinding::FullscreenDisableScope) {
         return storage::GlobalShortcutSettings().setFullscreenDisableScope(tools);
@@ -2733,6 +2728,7 @@ SettingsResetResult BuiltInSettingsBackend::resetSectionWithResults(SettingsSect
         return applyContextMenuSettings(
             storage::ApplicationStorage::instance().configuration().value(kContextMenuModeKey),
             storage::ConfigurationSchema::defaultValue(kContextMenuShortcutKey));
+    case SettingsSectionReset::ExportTasks:
     case SettingsSectionReset::ScreenshotOutput:
     case SettingsSectionReset::Translation:
     case SettingsSectionReset::Tray:
@@ -2856,6 +2852,8 @@ SettingsResetResult BuiltInSettingsBackend::resetSectionWithResults(SettingsSect
                       QStringLiteral("global_shortcuts/split_selected_images"));
         resetShortcut(GlobalShortcutAction::EditSelectedImages,
                       QStringLiteral("global_shortcuts/edit_selected_images"));
+        resetShortcut(GlobalShortcutAction::CompressSelectedImages,
+                      QStringLiteral("global_shortcuts/compress_selected_images"));
         resetShortcut(GlobalShortcutAction::TranslateSelectedText,
                       QStringLiteral("global_shortcuts/translate_selected_text"));
         resetShortcut(GlobalShortcutAction::ToggleWindowUnderCursorAlwaysOnTop,
@@ -2936,15 +2934,9 @@ SettingsResetResult BuiltInSettingsBackend::resetSectionWithResults(SettingsSect
                    {QStringLiteral("screenshot/keep_annotations_editable_after_pinning_to_screen"),
                     storage::ConfigurationSchema::defaultValue(QStringLiteral(
                         "screenshot/keep_annotations_editable_after_pinning_to_screen"))},
-                   {QStringLiteral("screenshot/copy_after_pinning_to_screen"),
-                    storage::ConfigurationSchema::defaultValue(
-                        QStringLiteral("screenshot/copy_after_pinning_to_screen"))},
                    {QStringLiteral("screenshot/shutter_sound_notification"),
                     storage::ConfigurationSchema::defaultValue(
                         QStringLiteral("screenshot/shutter_sound_notification"))},
-                   {QStringLiteral("screenshot/screenshot_sound_notification"),
-                    storage::ConfigurationSchema::defaultValue(
-                        QStringLiteral("screenshot/screenshot_sound_notification"))},
                    {QStringLiteral("screenshot/auto_recognize_qr_code"),
                     storage::ConfigurationSchema::defaultValue(
                         QStringLiteral("screenshot/auto_recognize_qr_code"))},

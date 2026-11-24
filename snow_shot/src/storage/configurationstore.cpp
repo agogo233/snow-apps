@@ -86,7 +86,11 @@ QMap<QString, QJsonValue> overlayFromDocument(const QJsonObject& document) {
             overlay.insert(entry.key, raw);
         }
     }
-    for (const QString& legacyKey : {QStringLiteral("screenshot/auto_save_after_copy"),
+    for (const QString& legacyKey : {QStringLiteral("capture_history/enabled"),
+                                     QStringLiteral("screenshot/auto_save_after_copy"),
+                                     QStringLiteral("screenshot/auto_save_after_execution_actions"),
+                                     QStringLiteral("screenshot/copy_after_pinning_to_screen"),
+                                     QStringLiteral("screenshot/screenshot_sound_notification"),
                                      QStringLiteral("interface/app_font_size_percentage"),
                                      QStringLiteral("screenshot_selection/selection_target")}) {
         bool present = false;
@@ -172,6 +176,12 @@ MaterializedConfiguration materializeConfiguration(const QMap<QString, QJsonValu
     const QMap<QString, QJsonValue> currentOverlay =
         mutateDocument ? ConfigurationSchema::migrateLegacyValues(overlay) : overlay;
     if (mutateDocument) {
+        auto history = result.document.value(QStringLiteral("capture_history")).toObject();
+        if (history.contains(QStringLiteral("enabled"))) {
+            history.remove(QStringLiteral("enabled"));
+            result.document.insert(QStringLiteral("capture_history"), history);
+            result.dirty = !replaceAll;
+        }
         QJsonObject interfaceValues = result.document.value(QStringLiteral("interface")).toObject();
         if (interfaceValues.contains(QStringLiteral("app_font_size_percentage"))) {
             interfaceValues.remove(QStringLiteral("app_font_size_percentage"));
@@ -179,10 +189,15 @@ MaterializedConfiguration materializeConfiguration(const QMap<QString, QJsonValu
             result.dirty = !replaceAll;
         }
         QJsonObject screenshot = result.document.value(QStringLiteral("screenshot")).toObject();
-        if (screenshot.contains(QStringLiteral("auto_save_after_copy"))) {
-            screenshot.remove(QStringLiteral("auto_save_after_copy"));
-            result.document.insert(QStringLiteral("screenshot"), screenshot);
-            result.dirty = !replaceAll;
+        for (const auto& key : {QStringLiteral("auto_save_after_copy"),
+                                QStringLiteral("auto_save_after_execution_actions"),
+                                QStringLiteral("copy_after_pinning_to_screen"),
+                                QStringLiteral("screenshot_sound_notification")}) {
+            if (screenshot.contains(key)) {
+                screenshot.remove(key);
+                result.document.insert(QStringLiteral("screenshot"), screenshot);
+                result.dirty = !replaceAll;
+            }
         }
         QJsonObject screenshotSelection =
             result.document.value(QStringLiteral("screenshot_selection")).toObject();

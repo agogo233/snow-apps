@@ -575,9 +575,11 @@ void smartLayoutStreamsParagraphsAndSwitchesModes() {
     const auto paragraphQuad = session.displayed->lines[0].quad;
     const auto sourceQuads = session.displayed->lines[0].sourceLineQuads;
     require(session.displayed->lines[0].smartMergeTranslation &&
-                !session.displayed->lines[0].fontSizeCapRatio &&
+                session.displayed->lines[0].fontSizeCapRatio &&
+                session.displayed->lines[0].sourceTextMetrics &&
+                session.displayed->lines[0].sourceTextMetrics->inkThicknessEm > 0 &&
                 !session.source->lines[0].smartMergeTranslation,
-            "only the Smart Merge overlay uses paragraph box fitting");
+            "the Smart Merge overlay retains the rendered OCR metrics for streaming");
     server.delta(0, QStringLiteral("partial paragraph"));
     waitUntil([&]() { return session.textUpdates == 1; },
               "merged paragraph streams into its block");
@@ -845,7 +847,9 @@ void streamsIndividualBoxesAndKeepsOriginals() {
     require(snapshot.text.has_value() &&
                 snapshot.text->presentation->lines[2].text == QStringLiteral("source 2"),
             "pin snapshots must retain source OCR independently of displayed translation");
-    require(snapshot.translatedText != nullptr && snapshot.translatedText != session.displayed &&
+    require(snapshot.translatedText != nullptr && !snapshot.translatedTextComplete &&
+                session.controller->cachedCompletedTranslationText().isEmpty() &&
+                snapshot.translatedText != session.displayed &&
                 snapshot.translatedText->lines[2].text == QStringLiteral("third") &&
                 snapshot.translatedText->lines[1].text == QStringLiteral("source 1"),
             "a pin snapshot must freeze partial translation and untouched source boxes");
@@ -1701,8 +1705,10 @@ void runPinnedOriginalImageTranslationTests() {
                         actual.direction == expected.direction,
                     "pin persistence must retain paragraph geometry and rendering metadata");
             require(actual.smartMergeTranslation && expected.smartMergeTranslation &&
+                        actual.sourceTextMetrics == expected.sourceTextMetrics &&
+                        actual.fontSizeCapRatio == expected.fontSizeCapRatio &&
                         std::abs(renderedFontSize(actual) - renderedFontSize(expected)) < 0.0001,
-                    "pin restoration reconstructs the Smart Merge fit from saved OCR");
+                    "pin restoration reconstructs the source metrics and Smart Merge fit");
             auto* content = window->findChild<ScreenshotRecognitionWindow*>();
             auto* layer =
                 content == nullptr
@@ -1930,6 +1936,9 @@ void runPinnedOriginalImageTranslationTests() {
                         QStringLiteral("translated"),
                 "restoration must retain separate original OCR and frozen partial translation");
         const auto restoredResults = session->recognitionResultsSnapshot();
+        require(!restoredResults.translatedTextComplete &&
+                    session->cachedCompletedTranslationText().isEmpty(),
+                "restored partial and legacy overlays are available for display only");
         for (int index = 0; index < restoredResults.translatedText->lines.size(); ++index) {
             const auto& line = restoredResults.translatedText->lines[index];
             require(line.fontSizeCapRatio &&

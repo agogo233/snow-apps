@@ -1,6 +1,7 @@
 #include "snow_shot/shortcuts/screenshotshortcutcontext.h"
 #include "snow_shot/shortcuts/pinnedshortcutcontext.h"
 #include "snow_shot/storage/settingsadapters.h"
+#include "snow_shot/shortcuts/annotationoptionshortcut.h"
 #include "snow_shot/storage/floatingtoolbarsettings.h"
 
 #include "snow_shot/app/editionfeatures.h"
@@ -60,15 +61,25 @@ bool setShortcutValue(const QString& key, const shortcuts::ShortcutBindingList& 
 
 const QStringList& drawingShortcutToolIds() {
     static const QStringList ids = {
-        QStringLiteral("select"),        QStringLiteral("shape"),
-        QStringLiteral("arrow"),         QStringLiteral("brush"),
-        QStringLiteral("highlight"),     QStringLiteral("text"),
-        QStringLiteral("serial_number"), QStringLiteral("filter"),
-        QStringLiteral("eraser"),        QStringLiteral("watermark"),
-        QStringLiteral("line"),          QStringLiteral("spotlight"),
-        QStringLiteral("distance"),      QStringLiteral("angle"),
-        QStringLiteral("bracket"),       QStringLiteral("magnifier"),
-        QStringLiteral("reset_canvas"),  QStringLiteral("speech_bubble"),
+        QStringLiteral("select"),
+        QStringLiteral("shape"),
+        QStringLiteral("arrow"),
+        QStringLiteral("brush"),
+        QStringLiteral("highlight"),
+        QStringLiteral("text"),
+        QStringLiteral("serial_number"),
+        QStringLiteral("filter"),
+        QStringLiteral("eraser"),
+        QStringLiteral("watermark"),
+        QStringLiteral("line"),
+        QStringLiteral("spotlight"),
+        QStringLiteral("distance"),
+        QStringLiteral("angle"),
+        QStringLiteral("bracket"),
+        QStringLiteral("magnifier"),
+        QStringLiteral("reset_canvas"),
+        QStringLiteral("speech_bubble"),
+        shortcuts::kCycleAnnotationToolOptions,
     };
     return ids;
 }
@@ -845,6 +856,14 @@ shortcuts::ShortcutBindingList ShortcutSettings::editSelectedImages() const {
 bool ShortcutSettings::setEditSelectedImages(const shortcuts::ShortcutBindingList& bindings) const {
     return setShortcutValue(QStringLiteral("global_shortcuts/edit_selected_images"), bindings);
 }
+shortcuts::ShortcutBindingList ShortcutSettings::compressSelectedImages() const {
+    return shortcutValue(QStringLiteral("global_shortcuts/compress_selected_images"));
+}
+
+bool ShortcutSettings::setCompressSelectedImages(
+    const shortcuts::ShortcutBindingList& bindings) const {
+    return setShortcutValue(QStringLiteral("global_shortcuts/compress_selected_images"), bindings);
+}
 
 shortcuts::ShortcutBindingList ShortcutSettings::openPinToScreenManagement() const {
     return shortcutValue(QStringLiteral("global_shortcuts/open_pin_to_screen_management"));
@@ -1031,20 +1050,16 @@ bool GlobalShortcutSettings::setFullscreenDisableScope(const QStringList& scope)
                             QJsonArray::fromStringList(scope));
 }
 
-bool ScreenshotSettings::shutterSoundNotification() const {
-    return cache().value(QStringLiteral("screenshot/shutter_sound_notification")).toBool();
+QStringList ScreenshotSettings::shutterSoundTargets() const {
+    return cache()
+        .value(QStringLiteral("screenshot/shutter_sound_notification"))
+        .toVariant()
+        .toStringList();
 }
 
-bool ScreenshotSettings::setShutterSoundNotification(bool enabled) const {
-    return cache().setValue(QStringLiteral("screenshot/shutter_sound_notification"), enabled);
-}
-
-bool ScreenshotSettings::screenshotSoundNotification() const {
-    return cache().value(QStringLiteral("screenshot/screenshot_sound_notification")).toBool();
-}
-
-bool ScreenshotSettings::setScreenshotSoundNotification(bool enabled) const {
-    return cache().setValue(QStringLiteral("screenshot/screenshot_sound_notification"), enabled);
+bool ScreenshotSettings::setShutterSoundTargets(const QStringList& targets) const {
+    return cache().setValue(QStringLiteral("screenshot/shutter_sound_notification"),
+                            QJsonArray::fromStringList(targets));
 }
 
 #if SNOW_SHOT_ENABLE_QR_RECOGNITION
@@ -1159,18 +1174,25 @@ bool ScreenshotSettings::setSelectionResizeMode(const QString& mode) const {
     return cache().setValue(QStringLiteral("screenshot/selection_resize_mode"), mode);
 }
 
-QStringList ScreenshotSettings::autoSaveAfterExecutionActions() const {
-    return stringList(
-        cache().value(QStringLiteral("screenshot/auto_save_after_execution_actions")));
+ExportTasks ScreenshotSettings::exportTasks(ExportTrigger trigger) const {
+    const auto& row = exportTaskRow(trigger);
+    const auto values = cache().value(row.key.toString()).toArray();
+    ExportTasks tasks;
+    for (const auto& value : values) {
+        const auto id = value.toString();
+        for (const auto& option : exportTaskOptions) {
+            if (option.id == id) {
+                tasks |= option.task;
+                break;
+            }
+        }
+    }
+    return tasks & row.allowed;
 }
 
-bool ScreenshotSettings::setAutoSaveAfterExecutionActions(const QStringList& actions) const {
-    return cache().setValue(QStringLiteral("screenshot/auto_save_after_execution_actions"),
-                            stringArray(actions));
-}
-
-bool ScreenshotSettings::autoSaveAfterExecution(const QString& action) const {
-    return autoSaveAfterExecutionActions().contains(action);
+bool ScreenshotSettings::setExportTasks(ExportTrigger trigger, ExportTasks tasks) const {
+    const auto& row = exportTaskRow(trigger);
+    return cache().setValue(row.key.toString(), stringArray(exportTaskIds(tasks & row.allowed)));
 }
 
 bool ScreenshotSettings::copyImageFileToClipboard() const {
@@ -1179,14 +1201,6 @@ bool ScreenshotSettings::copyImageFileToClipboard() const {
 
 bool ScreenshotSettings::setCopyImageFileToClipboard(bool enabled) const {
     return cache().setValue(QStringLiteral("screenshot/copy_image_file_to_clipboard"), enabled);
-}
-
-bool ScreenshotSettings::copyAfterPinningToScreen() const {
-    return cache().value(QStringLiteral("screenshot/copy_after_pinning_to_screen")).toBool();
-}
-
-bool ScreenshotSettings::setCopyAfterPinningToScreen(bool enabled) const {
-    return cache().setValue(QStringLiteral("screenshot/copy_after_pinning_to_screen"), enabled);
 }
 
 bool ScreenshotSettings::keepAnnotationsEditableAfterPinningToScreen() const {
@@ -1668,6 +1682,15 @@ shortcuts::ShortcutBindingMap ScreenshotShortcutSettings::allShortcuts() const {
     shortcuts::ShortcutBindingMap result;
     for (const QString& actionId : screenshotShortcutActionIds()) {
         result.insert(actionId, shortcutValue(screenshotShortcutKey(actionId)));
+    }
+    return result;
+}
+
+shortcuts::ShortcutBindingMap ScreenshotShortcutSettings::activeShortcuts() const {
+    auto result = allShortcuts();
+    if (ApplicationStorage::instance().captureHistoryPolicy().mode != CaptureHistoryMode::Full) {
+        result[QStringLiteral("previous_screenshot_history")].clear();
+        result[QStringLiteral("next_screenshot_history")].clear();
     }
     return result;
 }
